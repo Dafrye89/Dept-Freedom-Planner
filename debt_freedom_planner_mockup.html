@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debt Freedom Planner Mockup</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --panel-2: #f8faff;
+      --text: #14213d;
+      --muted: #5f6b7a;
+      --line: #d8e1ee;
+      --primary: #1e3a8a;
+      --primary-soft: #dbeafe;
+      --accent: #b91c1c;
+      --accent-soft: #fee2e2;
+      --success: #166534;
+      --success-soft: #dcfce7;
+      --warning: #92400e;
+      --warning-soft: #fef3c7;
+      --shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(30, 58, 138, 0.08), transparent 26%),
+        radial-gradient(circle at left center, rgba(185, 28, 28, 0.07), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
+      color: var(--text);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, #0f172a 0%, #14213d 52%, #1e3a8a 100%);
+      color: #e5eefc;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0 14%, rgba(255,255,255,0.05) 14% 17%, transparent 17% 31%, rgba(255,255,255,0.04) 31% 34%, transparent 34% 48%, rgba(255,255,255,0.05) 48% 51%, transparent 51% 65%, rgba(255,255,255,0.04) 65% 68%, transparent 68% 82%, rgba(255,255,255,0.05) 82% 85%, transparent 85% 100%);
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    .sidebar > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #b91c1c 100%);
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(30, 58, 138, 0.35);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 0.78rem;
+      color: #c6d4eb;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #c4d3ea;
+      padding: 0 10px;
+    }
+
+    .nav-item {
+      border: 0;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: #e2ebf8;
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.96rem;
+      transition: 0.2s ease;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      box-shadow: inset 3px 0 0 #ef4444;
+    }
+
+    .sidebar-card {
+      margin-top: auto;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .sidebar-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.96rem;
+    }
+
+    .sidebar-card p {
+      margin: 0 0 14px;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: #d5e1f2;
+    }
+
+    .sidebar-card button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #ffffff 0%, #eff6ff 65%, #fee2e2 100%);
+      color: #1e3a8a;
+      padding: 11px 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .main {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 1.7rem;
+    }
+
+    .topbar p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: white;
+      padding: 11px 15px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 65%, #b91c1c 100%);
+      color: white;
+      border-color: #1e3a8a;
+      box-shadow: 0 10px 24px rgba(30, 58, 138, 0.24);
+    }
+
+    .hero {
+      background:
+        linear-gradient(135deg, rgba(30,58,138,0.95) 0%, rgba(37,99,235,0.92) 45%, rgba(185,28,28,0.92) 100%),
+        linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+      color: white;
+      border: 1px solid rgba(30, 58, 138, 0.22);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0 12%, rgba(255,255,255,0.08) 12% 15%, transparent 15% 29%, rgba(255,255,255,0.07) 29% 32%, transparent 32% 46%, rgba(255,255,255,0.08) 46% 49%, transparent 49% 63%, rgba(255,255,255,0.07) 63% 66%, transparent 66% 80%, rgba(255,255,255,0.08) 80% 83%, transparent 83% 100%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .hero > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h3 {
+      margin: 0 0 10px;
+      font-size: 2rem;
+      line-height: 1.12;
+    }
+
+    .hero p {
+      margin: 0;
+      color: rgba(255,255,255,0.88);
+      line-height: 1.6;
+      max-width: 60ch;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini-stat {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 20px;
+      padding: 18px;
+      color: var(--text);
+    }
+
+    .mini-stat span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .mini-stat strong {
+      font-size: 1.55rem;
+      display: block;
+      color: #14213d;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      border-radius: 20px 20px 0 0;
+      background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 50%, #b91c1c 100%);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-head h4 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .section-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 13px 12px;
+      border-bottom: 1px solid #e8eef6;
+      text-align: left;
+      font-size: 0.94rem;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .pill.primary { background: var(--primary-soft); color: var(--primary); }
+    .pill.success { background: var(--success-soft); color: var(--success); }
+    .pill.warning { background: var(--warning-soft); color: var(--warning); }
+    .pill.accent { background: var(--accent-soft); color: var(--accent); }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .stat-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat-box {
+      background: var(--panel-2);
+      border: 1px solid #e0e9f4;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .stat-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+
+    .stat-box strong {
+      font-size: 1.35rem;
+      color: #14213d;
+    }
+
+    .bars {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 125px 1fr 70px;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.92rem;
+    }
+
+    .bar-track {
+      height: 12px;
+      border-radius: 999px;
+      background: #e8eef7;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 65%, #b91c1c 100%);
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: white;
+    }
+
+    .option.active {
+      border-color: #93c5fd;
+      background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      box-shadow: inset 0 0 0 1px #bfdbfe;
+    }
+
+    .option h5 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .option p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .option strong {
+      font-size: 1.25rem;
+      display: block;
+      color: #14213d;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1100px) {
+      .app-shell,
+      .hero,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .main {
+        padding: 18px;
+      }
+
+      .hero,
+      .card {
+        padding: 18px;
+      }
+
+      .hero h3 {
+        font-size: 1.55rem;
+      }
+
+      .hero-stats,
+      .stat-list,
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      th:nth-child(4), td:nth-child(4),
+      th:nth-child(5), td:nth-child(5) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">DF</div>
+        <div>
+          <h1>Debt Freedom Planner</h1>
+          <p>Simple payoff planning</p>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Main</div>
+        <button class="nav-item active">Dashboard</button>
+        <button class="nav-item">My Debt Plan</button>
+        <button class="nav-item">Compare Strategies</button>
+        <button class="nav-item">Printable Plan</button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Account</div>
+        <button class="nav-item">Profile</button>
+        <button class="nav-item">Billing</button>
+        <button class="nav-item">Settings</button>
+      </div>
+
+      <div class="sidebar-card">
+        <h3>Quick action</h3>
+        <p>Add a new debt or adjust your monthly extra payment to see your payoff date update instantly.</p>
+        <button>Add Debt</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2>Your debt payoff dashboard</h2>
+          <p>A clean, reassuring view with a patriotic feel designed for simple decision-making and trust.</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn">Print Plan</button>
+          <button class="btn">Export PDF</button>
+          <button class="btn primary">Update Plan</button>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div>
+          <span class="pill accent">Current Strategy: Snowball</span>
+          <h3>You could be debt-free by <span style="color:#1d4ed8;">June 2029</span>.</h3>
+          <p>
+            Based on your current balances, minimum payments, and an extra $350 per month,
+            this plan gives you a clear path forward without spreadsheets or guesswork.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="mini-stat">
+            <span>Total debt</span>
+            <strong>$34,280</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Total interest</span>
+            <strong>$8,940</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Months to payoff</span>
+            <strong>39</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Extra monthly payment</span>
+            <strong>$350</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="stack">
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h4>Your debts</h4>
+                <p>Clean table view with quick understanding of what gets paid first.</p>
+              </div>
+              <span class="pill success">4 active debts</span>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Debt</th>
+                  <th>Balance</th>
+                  <th>APR</th>
+                  <th>Minimum</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Credit Card A</td>
+                  <td>$2,480</td>
+                  <td>24.99%</td>
+                  <td>$95</td>
+                  <td><span class="pill primary">#1</span></td>
+                </tr>
+                <tr>
+                  <td>Store Card</td>
+                  <td>$3,100</td>
+                  <td>19.50%</td>
+                  <td>$90</td>
+                  <td><span class="pill primary">#2</span></td>
+                </tr>
+                <tr>
+                  <td>Car Loan</td>
+                  <td>$11,700</td>
+                  <td>7.20%</td>
+                  <td>$315</td>
+                  <td><span class="pill warning">#3</span></td>
+                </tr>
+                <tr>
+                  <td>Personal Loan</td>
+                  <td>$16,900</td>
+                  <td>10.90%</td>
+                  <td>$420</td>
+                  <td><span class="pill warning">#4</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h4>Strategy comparison</h4>
+                <p>Simple side-by-side view so users can make a confident choice.</p>
+              </div>
+            </div>
+
+            <div class="comparison">
+              <div class="option active">
+                <h5>Snowball</h5>
+                <p>Pay the smallest balance first for faster visible wins.</p>
+                <strong>Debt-free in 39 months</strong>
+                <span class="pill success" style="margin-top:10px;">Best for motivation</span>
+              </div>
+              <div class="option">
+                <h5>Avalanche</h5>
+                <p>Pay the highest interest first to reduce total interest paid.</p>
+                <strong>Debt-free in 37 months</strong>
+                <span class="pill primary" style="margin-top:10px;">Saves $1,140 interest</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h4>At a glance</h4>
+                <p>Big numbers, low friction.</p>
+              </div>
+            </div>
+
+            <div class="stat-list">
+              <div class="stat-box">
+                <span>Payoff date</span>
+                <strong>June 2029</strong>
+              </div>
+              <div class="stat-box">
+                <span>Total monthly payment</span>
+                <strong>$1,270</strong>
+              </div>
+              <div class="stat-box">
+                <span>Fastest win</span>
+                <strong>Card A in 4 mo.</strong>
+              </div>
+              <div class="stat-box">
+                <span>Interest saved</span>
+                <strong>$6,120</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h4>Payoff progress</h4>
+                <p>Visual but still conservative and clear.</p>
+              </div>
+            </div>
+
+            <div class="bars">
+              <div class="bar-row">
+                <div>Credit Card A</div>
+                <div class="bar-track"><div class="bar-fill" style="width: 82%;"></div></div>
+                <div>82%</div>
+              </div>
+              <div class="bar-row">
+                <div>Store Card</div>
+                <div class="bar-track"><div class="bar-fill" style="width: 56%;"></div></div>
+                <div>56%</div>
+              </div>
+              <div class="bar-row">
+                <div>Car Loan</div>
+                <div class="bar-track"><div class="bar-fill" style="width: 21%;"></div></div>
+                <div>21%</div>
+              </div>
+              <div class="bar-row">
+                <div>Personal Loan</div>
+                <div class="bar-track"><div class="bar-fill" style="width: 15%;"></div></div>
+                <div>15%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-head">
+              <div>
+                <h4>Next step</h4>
+                <p>Clear guidance, not financial jargon.</p>
+              </div>
+            </div>
+            <p style="margin:0 0 12px; line-height:1.6; color:var(--text);">
+              Put every extra dollar toward <strong>Credit Card A</strong> until it is gone.
+              Then roll that full payment into <strong>Store Card</strong>.
+            </p>
+            <p class="footer-note">
+              This mockup is designed to feel trustworthy, calm, and easy for older users to read. The patriotic styling stays restrained and professional, using red, white, and blue accents without turning into a novelty theme.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
