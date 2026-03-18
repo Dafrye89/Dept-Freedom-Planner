@@ -1,0 +1,29 @@
+{% load formatting %}
+<div class="stack">
+  <div class="summary-grid xl:!grid-cols-2">
+    <div class="summary-card">
+      <span>Debt-free date</span>
+      <strong>{{ preview_plan.summary.projected_payoff_date_label }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Total interest</span>
+      <strong>{{ preview_plan.summary.total_interest|currency }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Total monthly payment</span>
+      <strong>{{ preview_plan.summary.monthly_payment|currency }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>First target</span>
+      <strong>{{ preview_plan.summary.first_target }}</strong>
+    </div>
+  </div>
+
+  <div class="help-box">
+    <strong>Comparison snapshot:</strong>
+    <div class="muted mt-3">
+      Avalanche payoff date: {{ preview_comparisons.avalanche.summary.projected_payoff_date_label }}.
+      Snowball payoff date: {{ preview_comparisons.snowball.summary.projected_payoff_date_label }}.
+    </div>
+  </div>
+</div>

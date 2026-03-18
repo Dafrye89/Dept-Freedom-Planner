@@ -1,0 +1,60 @@
+<article class="row-card" data-form-row>
+  {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+  <div class="panel-header mb-4">
+    <div>
+      <span class="eyebrow">Debt entry</span>
+      <h3>Account details</h3>
+    </div>
+  </div>
+  <div class="field-grid">
+    <div class="field">
+      <label for="{{ form.name.id_for_label }}">Debt name</label>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.lender_name.id_for_label }}">Lender</label>
+      {{ form.lender_name }}
+      {{ form.lender_name.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.balance.id_for_label }}">Current balance</label>
+      {{ form.balance }}
+      {{ form.balance.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.apr.id_for_label }}">APR</label>
+      {{ form.apr }}
+      {{ form.apr.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.minimum_payment.id_for_label }}">Minimum payment</label>
+      {{ form.minimum_payment }}
+      {{ form.minimum_payment.errors }}
+    </div>
+    <div class="field">
+      <label for="{{ form.due_day.id_for_label }}">Due day</label>
+      {{ form.due_day }}
+      {{ form.due_day.errors }}
+    </div>
+    <div class="field full-width">
+      <label for="{{ form.notes.id_for_label }}">Notes</label>
+      {{ form.notes }}
+      {{ form.notes.errors }}
+    </div>
+    {% if form.custom_order %}
+      <div class="field">
+        <label for="{{ form.custom_order.id_for_label }}">Custom payoff order</label>
+        {{ form.custom_order }}
+        <div class="hint">Use 1 for the debt you want first if you choose Custom later.</div>
+        {{ form.custom_order.errors }}
+      </div>
+    {% endif %}
+  </div>
+  {% if form.DELETE %}
+    <div style="display:none;">{{ form.DELETE }}</div>
+  {% endif %}
+  <div class="card-actions" style="margin-top:16px;">
+    <button type="button" class="button button-secondary" data-remove-form>Remove this debt</button>
+  </div>
+</article>

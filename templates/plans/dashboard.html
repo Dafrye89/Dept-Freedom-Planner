@@ -1,0 +1,59 @@
+{% extends "base_app.html" %}
+{% load formatting %}
+
+{% block title %}My Saved Plans{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Dashboard</span>
+      <h1 class="page-header__title">Your saved debt plans</h1>
+      <p class="page-header__copy">Open a saved plan, start a new one, or compare what the free and paid tiers include.</p>
+      <div class="page-header__actions">
+        <a class="button button-primary" href="{% url 'core:planner_start' %}">Start a new plan</a>
+        <a class="button button-secondary" href="{% url 'billing:pricing' %}">Compare free and paid</a>
+      </div>
+    </div>
+    <div class="page-header__body">
+      <div class="summary-grid xl:!grid-cols-2">
+        <article class="summary-card">
+          <span>Saved plans</span>
+          <strong>{{ plans|length }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Account access</span>
+          <strong>{{ capabilities.tier_label }}</strong>
+        </article>
+      </div>
+      <article class="notice-box">
+        <strong>Return to the same place fast.</strong>
+        <div class="muted mt-3">Each saved plan keeps its own debts, strategy, and comparison history so you can revisit it without starting over.</div>
+      </article>
+    </div>
+  </section>
+
+  {% if plans %}
+    <section class="plan-grid{% if plans|length == 1 %} plan-grid--single{% endif %}">
+      {% for saved_plan in plans %}
+        <article class="plan-card">
+          <span>{{ saved_plan.household_name|default:"Saved household plan" }}</span>
+          <h3 class="mt-4 text-2xl font-bold">{{ saved_plan.title }}</h3>
+          <div class="mt-3 grid gap-2 text-sm leading-6 text-patriotic-mute">
+            <div>Debt-free target: {{ saved_plan.projected_payoff_date|date:"F Y"|default:"Needs recalculation" }}</div>
+            <div>Interest: {{ saved_plan.projected_total_interest|currency }}</div>
+          </div>
+          <div class="card-actions" style="margin-top:16px;">
+            <a class="button button-primary" href="{% url 'plans:detail' saved_plan.pk %}">Open</a>
+            <a class="button button-secondary" href="{% url 'plans:edit' saved_plan.pk %}">Edit</a>
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="panel empty-state">
+      <h3>No saved plans yet.</h3>
+      <p class="muted">Free accounts can save one plan. Paid accounts can save as many as they want.</p>
+      <a class="button button-primary" href="{% url 'core:planner_start' %}">Build my first plan</a>
+    </section>
+  {% endif %}
+{% endblock %}

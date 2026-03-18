@@ -1,0 +1,125 @@
+{% extends "base_app.html" %}
+
+{% block title %}Step 1: List Your Debts{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <div class="step-track">
+        <span class="step-pill current">Step 1: List debts</span>
+        <span class="step-pill">Step 2: Choose strategy</span>
+        <span class="step-pill">Step 3: Review results</span>
+      </div>
+      <h1 class="page-header__title">List every debt in one place.</h1>
+      <p class="page-header__copy">Use statement names you recognize. When you finish, the planner will walk you through the payoff method and the next step.</p>
+    </div>
+    <div class="page-header__body">
+      <div>
+        <span class="badge">At least one debt is required</span>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <article class="summary-card">
+            <span>What to gather</span>
+            <strong>Balance, APR, minimum</strong>
+          </article>
+          <article class="summary-card">
+            <span>Why it matters</span>
+            <strong>Accurate monthly payoff timing</strong>
+          </article>
+        </div>
+      </div>
+      <article class="help-box">
+        <strong>Plain-language tip</strong>
+        <div class="muted mt-3">If a debt is interest-free right now, enter 0 for APR. If you are unsure about a due date, leave it blank and come back later.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Plan details</span>
+          <h3>Name this plan and add your debts</h3>
+          <p>Keep labels simple so you can recognize them immediately later.</p>
+        </div>
+      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="field-grid">
+          <div class="field">
+            <label for="{{ details_form.title.id_for_label }}">Plan title</label>
+            {{ details_form.title }}
+            {{ details_form.title.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ details_form.household_name.id_for_label }}">Household label</label>
+            {{ details_form.household_name }}
+            {{ details_form.household_name.errors }}
+          </div>
+        </div>
+
+        <div class="panel-header" style="margin-top:24px;">
+          <div>
+            <span class="eyebrow">Debt list</span>
+            <h3>Add your accounts</h3>
+          </div>
+          <span class="badge">Up to 10 debts</span>
+        </div>
+
+        <div data-formset-root>
+          {{ debt_formset.management_form }}
+          <div class="stack" data-formset-forms>
+            {% for form in debt_formset.forms %}
+              {% include "partials/debt_form_row.html" with form=form %}
+            {% endfor %}
+          </div>
+          <template>
+            {% include "partials/debt_form_row.html" with form=debt_formset.empty_form %}
+          </template>
+          <div class="button-row" style="margin-top:16px;">
+            <button type="button" class="button button-secondary" data-add-form>Add another debt</button>
+            <button type="submit" class="button button-primary">Continue to strategy</button>
+          </div>
+        </div>
+
+        <div class="totals-grid" style="margin-top:20px;">
+          <article class="totals-card">
+            <span>Total debt entered</span>
+            <strong data-total-balance>$0</strong>
+          </article>
+          <article class="totals-card">
+            <span>Total minimum payments</span>
+            <strong data-total-minimums>$0</strong>
+          </article>
+        </div>
+      </form>
+    </article>
+
+    <aside class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Helpful guidance</span>
+          <h3>Keep each entry easy to trust</h3>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="help-box">
+          <strong>Use statement names you know.</strong>
+          <div class="muted">Examples: Visa card, truck loan, personal loan, medical payment plan.</div>
+        </div>
+        <div class="help-box">
+          <strong>APR can be zero.</strong>
+          <div class="muted">If a loan is promotional or interest-free right now, enter 0 for APR.</div>
+        </div>
+        <div class="help-box">
+          <strong>Minimum payment must be real.</strong>
+          <div class="muted">The monthly plan depends on the true minimum payment from each account.</div>
+        </div>
+        <div class="notice-box">
+          <strong>You can stop here and come back.</strong>
+          <div class="muted">Nothing is locked in until you save or print a finished plan.</div>
+        </div>
+      </div>
+    </aside>
+  </section>
+{% endblock %}

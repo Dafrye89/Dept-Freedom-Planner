@@ -1,0 +1,61 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Pricing{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <span class="eyebrow">Pricing</span>
+    <h2>Choose the level that fits your household</h2>
+    <p>The free tier is designed to be genuinely useful. Paid access is for households who want unlimited saved plans and PDF exports.</p>
+  </section>
+
+  <section class="page-grid">
+    <article class="pricing-card">
+      <span class="eyebrow">Free</span>
+      <h3 class="mt-4 text-2xl font-bold">Start at no cost</h3>
+      <p class="muted">Best for first-time users who want clarity right away.</p>
+      <ul class="pricing-list">
+        <li>Anonymous calculator and comparison</li>
+        <li>One saved plan after signup</li>
+        <li>Print view</li>
+      </ul>
+      <div class="card-actions" style="margin-top:16px;">
+        <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
+      </div>
+    </article>
+
+    <article class="pricing-card">
+      <span class="eyebrow">Paid</span>
+      <h3 class="mt-4 text-2xl font-bold">Unlimited planning</h3>
+      <p class="muted">Best for households that want exports and multiple plan scenarios.</p>
+      <ul class="pricing-list">
+        <li>Unlimited saved plans</li>
+        <li>Unlimited strategy comparisons</li>
+        <li>PDF export</li>
+      </ul>
+      <div class="upgrade-box" style="margin-top:16px;">
+        <strong>Paid access is activated manually in v1.</strong>
+        <div class="muted">Once you create an account, the founder can activate paid access for you.</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Good to know</span>
+        <h2>Paid activation is manual in v1.</h2>
+      </div>
+    </div>
+    <div class="page-grid">
+      <article class="notice-box">
+        <strong>Create the account first.</strong>
+        <div class="muted mt-3">That gives the planner a place to attach your saved plans and future access updates.</div>
+      </article>
+      <article class="notice-box">
+        <strong>The founder activates paid access.</strong>
+        <div class="muted mt-3">Billing automation can come later. For now, access is managed manually so the product can stay focused on planning.</div>
+      </article>
+    </div>
+  </section>
+{% endblock %}

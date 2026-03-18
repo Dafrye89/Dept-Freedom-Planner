@@ -1,0 +1,154 @@
+{% extends "base_app.html" %}
+{% load formatting %}
+
+{% block title %}{{ saved_plan.title }}{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Saved plan</span>
+      <h1 class="page-header__title">{{ saved_plan.title }}</h1>
+      <p class="page-header__copy">{{ saved_plan.household_name|default:"Your household payoff plan" }} could be debt-free by {{ plan.summary.projected_payoff_date_label }} with the current {{ plan.strategy_label|lower }} strategy.</p>
+      <div class="page-header__actions">
+        <a class="button button-primary" href="{% url 'plans:edit' saved_plan.pk %}">Edit this plan</a>
+        <a class="button button-secondary" href="{% url 'exports:plan_print' saved_plan.pk %}">Print view</a>
+        {% if capabilities.can_export_pdf %}
+          <a class="button button-secondary" href="{% url 'exports:plan_pdf' saved_plan.pk %}">Download PDF</a>
+        {% else %}
+          <a class="button button-secondary" href="{% url 'billing:pricing' %}">Unlock PDF export</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="page-header__body">
+      <div class="stack">
+        <span class="badge">Current strategy: {{ plan.strategy_label }}</span>
+        <div class="muted">Use the comparison and scenario sections below if you want to test a different pace or payoff order.</div>
+      </div>
+      <article class="help-box">
+        <strong>First target: {{ plan.summary.first_target }}</strong>
+        <div class="muted mt-3">Keep the payment focused on one account until it is gone so the next step stays easy to follow.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card"><span>Total debt</span><strong>{{ plan.summary.total_debt|currency }}</strong></article>
+    <article class="summary-card"><span>Total interest</span><strong>{{ plan.summary.total_interest|currency }}</strong></article>
+    <article class="summary-card"><span>Monthly payment</span><strong>{{ plan.summary.monthly_payment|currency }}</strong></article>
+    <article class="summary-card"><span>First target</span><strong>{{ plan.summary.first_target }}</strong></article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Debt roster</span>
+        <h3>Every account in one place</h3>
+      </div>
+    </div>
+    {% include "partials/debt_table.html" %}
+  </section>
+
+  <section class="page-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Strategy comparison</span>
+          <h3>How the strategies compare</h3>
+        </div>
+      </div>
+      {% include "partials/comparison_cards.html" %}
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Action step</span>
+          <h3>What to do next</h3>
+        </div>
+      </div>
+      <div class="cta-box">
+        <strong>Keep paying {{ plan.summary.first_target }} first.</strong>
+        <div class="muted">Every completed debt makes the next payment larger and easier to follow.</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Scenario lab</span>
+        <h3>Compare extra what-if cases</h3>
+        <p>Paid access lets you store custom scenarios beside the built-in strategy comparison.</p>
+      </div>
+    </div>
+
+    {% if capabilities.can_compare_unlimited %}
+      <form class="stack" method="post" action="{% url 'plans:add_scenario' saved_plan.pk %}">
+        {% csrf_token %}
+        <div class="field-grid">
+          <div class="field">
+            <label for="{{ scenario_form.scenario_name.id_for_label }}">Scenario name</label>
+            {{ scenario_form.scenario_name }}
+          </div>
+          <div class="field">
+            <label for="{{ scenario_form.strategy_type.id_for_label }}">Strategy</label>
+            {{ scenario_form.strategy_type }}
+          </div>
+          <div class="field">
+            <label for="{{ scenario_form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
+            {{ scenario_form.extra_monthly_payment }}
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="button button-primary" type="submit">Add scenario</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="upgrade-box">
+        <strong>Paid access unlocks unlimited custom scenario comparisons.</strong>
+        <div class="muted">Free accounts can still compare the built-in strategy options above.</div>
+      </div>
+    {% endif %}
+
+    <div class="comparison-grid" style="margin-top:20px;">
+      {% for scenario in saved_scenarios %}
+        <article class="summary-card">
+          <span>
+            {{ scenario.scenario_name }}
+            {% if scenario.is_system_generated %}
+              <span class="badge" style="margin-left:8px;">Built in</span>
+            {% endif %}
+          </span>
+          <strong>{{ scenario.payoff_date|date:"M Y"|default:"Needs larger payment" }}</strong>
+          <div class="muted">{{ scenario.months_to_payoff }} months to payoff</div>
+          <div class="muted">{{ scenario.total_interest|currency }} interest</div>
+        </article>
+      {% empty %}
+        <article class="summary-card">
+          <span>No scenarios yet</span>
+          <strong>Use the form above</strong>
+          <div class="muted">Paid users can save as many what-if comparisons as they need.</div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Monthly schedule</span>
+        <h3>First 18 schedule rows</h3>
+      </div>
+    </div>
+    {% include "partials/schedule_table.html" %}
+  </section>
+
+  <section class="panel">
+    <div class="card-actions">
+      <form class="inline-form" method="post" action="{% url 'plans:delete' saved_plan.pk %}">
+        {% csrf_token %}
+        <button class="button button-danger" type="submit">Archive this plan</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}

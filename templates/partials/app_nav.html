@@ -1,0 +1,69 @@
+{% load static %}
+
+<header class="app-header">
+  <div class="app-header__inner">
+    <a class="brand-lockup" href="{% if user.is_authenticated %}{% url 'plans:dashboard' %}{% else %}{% url 'core:home' %}{% endif %}">
+      <img src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+      <div class="brand-lockup__text">
+        <strong>Debt Freedom</strong>
+        <span>Planner</span>
+      </div>
+    </a>
+
+    <nav class="app-links" aria-label="Application">
+      {% if user.is_authenticated %}
+        <a class="app-link {% if request.resolver_match.namespace == 'plans' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'plans:dashboard' %}">Dashboard</a>
+        <a class="app-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}">Start plan</a>
+        <a class="app-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}" href="{% url 'accounts:settings' %}">Settings</a>
+        <a class="app-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:pricing' %}">Pricing</a>
+        {% if show_admin_link %}
+          <a class="app-link" href="/control-room/">Admin</a>
+        {% endif %}
+        <a class="app-link" href="{% url 'account_logout' %}">Log out</a>
+      {% else %}
+        <a class="app-link" href="{% url 'core:home' %}">Home</a>
+        <a class="app-link active" href="{% url 'core:planner_start' %}">Start plan</a>
+        <a class="app-link" href="{% url 'billing:pricing' %}">Pricing</a>
+        <a class="app-link" href="{% url 'account_login' %}">Log in</a>
+      {% endif %}
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <button type="button" class="sidebar-toggle !border-white/15 !bg-white/10 !text-white lg:hidden" @click="mobileNavOpen = !mobileNavOpen" aria-label="Open application navigation">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+
+      {% if user.is_authenticated %}
+        <a class="button-primary hidden sm:inline-flex" href="{% url 'core:planner_start' %}">Start a plan</a>
+        <a class="avatar-chip hidden sm:inline-flex" href="{% url 'accounts:settings' %}">{{ user.username|default:"DF"|slice:":2"|upper }}</a>
+      {% else %}
+        <a class="button-secondary hidden sm:inline-flex" href="{% url 'account_signup' %}">Create free account</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="container-shell pb-4 lg:hidden" x-cloak x-show="mobileNavOpen">
+    <div class="nav-panel">
+      <nav class="grid gap-2" aria-label="Mobile application">
+        {% if user.is_authenticated %}
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'plans:dashboard' %}" @click="mobileNavOpen = false">Dashboard</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start plan</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'accounts:settings' %}" @click="mobileNavOpen = false">Settings</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
+          {% if show_admin_link %}
+            <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="/control-room/" @click="mobileNavOpen = false">Admin</a>
+          {% endif %}
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_logout' %}" @click="mobileNavOpen = false">Log out</a>
+        {% else %}
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:home' %}" @click="mobileNavOpen = false">Home</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start plan</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_login' %}" @click="mobileNavOpen = false">Log in</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_signup' %}" @click="mobileNavOpen = false">Create free account</a>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+</header>

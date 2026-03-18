@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block body %}
+  <div class="shell-marker" data-shell="marketing"></div>
+  <div x-data="{ marketingMenuOpen: false }">
+    {% include "partials/marketing_nav.html" %}
+    {% include "partials/messages.html" %}
+    <main class="marketing-main">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "partials/marketing_footer.html" %}
+  </div>
+{% endblock %}

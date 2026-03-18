@@ -1,0 +1,14 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Something Went Wrong{% endblock %}
+
+{% block content %}
+  <section class="panel empty-state">
+    <span class="eyebrow">Temporary problem</span>
+    <h1>Something went wrong.</h1>
+    <p class="muted">The planner hit an unexpected problem. Please go back and try again, or return to the homepage.</p>
+    <div class="button-row" style="justify-content:center; margin-top:16px;">
+      <a class="button button-primary" href="{% url 'core:home' %}">Go home</a>
+    </div>
+  </section>
+{% endblock %}

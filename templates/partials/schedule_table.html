@@ -1,0 +1,30 @@
+{% load formatting %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Debt</th>
+        <th>Starting</th>
+        <th>Interest</th>
+        <th>Payment</th>
+        <th>Ending</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in plan.schedule|slice:":18" %}
+        <tr>
+          <td>{{ row.month_label }}</td>
+          <td>{{ row.debt_name }}</td>
+          <td>{{ row.starting_balance|currency }}</td>
+          <td>{{ row.interest|currency }}</td>
+          <td>{{ row.payment|currency }}</td>
+          <td>{{ row.ending_balance|currency }}</td>
+          <td>{{ row.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="muted mt-3">Showing the first 18 schedule rows so the table stays readable. Saved plans keep the full calculation behind the scenes.</div>

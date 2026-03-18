@@ -1,0 +1,18 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}Log Out{% endblock %}
+
+{% block content %}
+  <section class="panel empty-state">
+    <span class="eyebrow">Log out</span>
+    <h1>Do you want to log out?</h1>
+    <p class="muted">You can sign back in any time to reopen saved plans or print your roadmap.</p>
+    <form method="post" action="{% url 'account_logout' %}">
+      {% csrf_token %}
+      <div class="button-row" style="justify-content:center;">
+        <button class="button button-primary" type="submit">Log out</button>
+        <a class="button button-secondary" href="{% if user.is_authenticated %}{% url 'plans:dashboard' %}{% else %}{% url 'core:home' %}{% endif %}">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

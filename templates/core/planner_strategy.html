@@ -1,0 +1,90 @@
+{% extends "base_app.html" %}
+
+{% block title %}Step 2: Choose A Strategy{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <div class="step-track">
+        <span class="step-pill">Step 1: List debts</span>
+        <span class="step-pill current">Step 2: Choose strategy</span>
+        <span class="step-pill">Step 3: Review results</span>
+      </div>
+      <h1 class="page-header__title">Choose a payoff strategy you can stick with.</h1>
+      <p class="page-header__copy">Pick the approach that feels most realistic, then add any extra monthly payment you can consistently afford.</p>
+    </div>
+    <div class="page-header__body">
+      <div class="summary-grid xl:!grid-cols-2">
+        <article class="summary-card">
+          <span>Snowball</span>
+          <strong>Fast visible wins</strong>
+        </article>
+        <article class="summary-card">
+          <span>Avalanche</span>
+          <strong>Lower total interest</strong>
+        </article>
+      </div>
+      <article class="help-box">
+        <strong>Good default for most users</strong>
+        <div class="muted mt-3">If motivation matters more than math, snowball is often easier to follow month after month.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel">
+      <form method="post"
+            hx-post="{% url 'core:strategy_preview' %}"
+            hx-target="#strategy-preview"
+            hx-trigger="change delay:250ms, input delay:250ms">
+        {% csrf_token %}
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">Payoff method</span>
+            <h3>Which approach do you want?</h3>
+            <p>Change the option or the extra payment to refresh the preview on the right.</p>
+          </div>
+        </div>
+
+        <div class="radio-card-group">
+          {% for value, label in strategy_form.fields.strategy_type.choices %}
+            <label class="radio-card">
+              <input type="radio" name="{{ strategy_form.strategy_type.html_name }}" value="{{ value }}" {% if strategy_form.strategy_type.value == value %}checked{% endif %}>
+              <div>
+                <strong>{{ label }}</strong>
+                <div class="muted">
+                  {% if value == "snowball" %}Pay the smallest balance first for early visible wins.{% elif value == "avalanche" %}Pay the highest interest first to save more interest over time.{% else %}Use the order you set on your debts list.{% endif %}
+                </div>
+              </div>
+            </label>
+          {% endfor %}
+        </div>
+
+        <div class="field" style="margin-top:20px;">
+          <label for="{{ strategy_form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
+          {{ strategy_form.extra_monthly_payment }}
+          <div class="muted">This is the amount you can pay above all minimum payments combined.</div>
+          {{ strategy_form.extra_monthly_payment.errors }}
+        </div>
+
+        <div class="button-row" style="margin-top:20px;">
+          <a class="button button-secondary" href="{% url 'core:planner_debts' %}">Back to debt list</a>
+          <button type="submit" class="button button-primary" formaction="{% url 'core:planner_strategy' %}" hx-post="unset" hx-trigger="none">Continue to results</button>
+        </div>
+      </form>
+    </article>
+
+    <aside class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Live preview</span>
+          <h3>What this choice looks like</h3>
+          <p>The preview updates before you move to the results page.</p>
+        </div>
+      </div>
+      <div id="strategy-preview">
+        {% include "partials/strategy_preview.html" %}
+      </div>
+    </aside>
+  </section>
+{% endblock %}

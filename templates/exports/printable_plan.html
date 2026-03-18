@@ -1,0 +1,71 @@
+{% load static formatting %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ saved_plan.title|default:plan.title }}</title>
+  {% if pdf_mode %}
+    <style>{{ pdf_styles|safe }}</style>
+  {% else %}
+    <link rel="stylesheet" href="{% static 'css/print.css' %}">
+  {% endif %}
+</head>
+<body>
+  <main>
+    <section class="print-header">
+      <div class="print-header__row">
+        <div class="print-header__logo">
+          {% if branding_logo_data_uri %}
+            <img src="{{ branding_logo_data_uri }}" alt="Debt Freedom Planner logo">
+          {% else %}
+            <img src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+          {% endif %}
+        </div>
+        <div class="print-header__copy">
+          <span class="eyebrow">Debt Freedom Planner</span>
+          <h1>{{ saved_plan.title|default:plan.title }}</h1>
+          <p>{{ saved_plan.household_name|default:"Debt payoff plan" }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <article class="summary-card"><span>Debt-free date</span><strong>{{ plan.summary.projected_payoff_date_label }}</strong></article>
+      <article class="summary-card"><span>Total interest</span><strong>{{ plan.summary.total_interest|currency }}</strong></article>
+      <article class="summary-card"><span>Total paid</span><strong>{{ plan.summary.total_paid|currency }}</strong></article>
+      <article class="summary-card"><span>First target</span><strong>{{ plan.summary.first_target }}</strong></article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Debt list</span>
+          <h2>Accounts included in this plan</h2>
+        </div>
+      </div>
+      {% include "partials/debt_table.html" %}
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Strategy comparison</span>
+          <h2>What the paths look like</h2>
+        </div>
+      </div>
+      {% include "partials/comparison_cards.html" %}
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Monthly schedule</span>
+          <h2>First 18 rows of the payoff schedule</h2>
+        </div>
+      </div>
+      {% include "partials/schedule_table.html" %}
+    </section>
+  </main>
+</body>
+</html>

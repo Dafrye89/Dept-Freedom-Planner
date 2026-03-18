@@ -1,0 +1,83 @@
+{% load static %}
+
+<aside
+  class="sidebar"
+  :class="{ 'translate-x-0': mobileNavOpen, '-translate-x-full': !mobileNavOpen }"
+  @keydown.escape.window="mobileNavOpen = false"
+>
+  <div class="flex items-center justify-between gap-3 lg:hidden">
+    <span class="eyebrow !bg-white/10 !text-white !border-white/10">Navigation</span>
+    <button type="button" class="sidebar-toggle !border-white/10 !bg-white/10 !text-white" @click="mobileNavOpen = false" aria-label="Close navigation menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 6l12 12M18 6L6 18" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="brand-card">
+    <div class="brand-card__row">
+      <img class="brand-card__logo" src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+      <div class="brand-copy">
+        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Debt Freedom Planner</span>
+        <h1>Simple debt payoff planning</h1>
+        <p class="mt-2 text-sm leading-6 text-slate-100">Large text, shallow navigation, and one clear next step on every screen.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mission-card">
+    <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Access</span>
+    <h2 class="mt-3 text-2xl font-bold text-white">{{ capabilities.tier_label }}</h2>
+    <p class="mt-3 text-sm leading-6 text-slate-100">
+      {% if capabilities.is_paid %}
+        Your account includes unlimited plans, unlimited comparisons, and PDF export.
+      {% elif capabilities.is_authenticated %}
+        Free access keeps one saved plan and print view ready whenever you need it.
+      {% else %}
+        You can calculate and compare strategies immediately. Sign up only when you want to save.
+      {% endif %}
+    </p>
+  </div>
+
+  <nav class="sidebar-nav" aria-label="Primary">
+    <a class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}" @click="mobileNavOpen = false">
+      <span>Home</span>
+    </a>
+    <a class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">
+      <span>Start my plan</span>
+    </a>
+    <a class="nav-link {% if request.resolver_match.namespace == 'plans' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% if user.is_authenticated %}{% url 'plans:dashboard' %}{% else %}{% url 'account_login' %}{% endif %}" @click="mobileNavOpen = false">
+      <span>{% if user.is_authenticated %}My dashboard{% else %}Log in{% endif %}</span>
+    </a>
+    <a class="nav-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">
+      <span>Pricing</span>
+    </a>
+    {% if user.is_authenticated %}
+      <a class="nav-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}" href="{% url 'accounts:settings' %}" @click="mobileNavOpen = false">
+        <span>Account settings</span>
+      </a>
+      <a class="nav-link" href="{% url 'account_logout' %}" @click="mobileNavOpen = false">
+        <span>Log out</span>
+      </a>
+    {% else %}
+      <a class="nav-link" href="{% url 'account_signup' %}" @click="mobileNavOpen = false">
+        <span>Create account</span>
+      </a>
+    {% endif %}
+    {% if show_admin_link %}
+      <a class="nav-link" href="/control-room/" @click="mobileNavOpen = false">
+        <span>Admin</span>
+      </a>
+    {% endif %}
+  </nav>
+
+  <div class="mission-card">
+    <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Quick reminder</span>
+    <h2 class="mt-3 text-2xl font-bold text-white">One calm screen at a time.</h2>
+    <ul>
+      <li>Enter the debts exactly as they appear on your statement.</li>
+      <li>Pick the strategy that feels easiest to follow month after month.</li>
+      <li>Use the print view if paper feels simpler than a screen.</li>
+    </ul>
+  </div>
+</aside>

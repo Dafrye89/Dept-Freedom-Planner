@@ -1,0 +1,172 @@
+{% extends "base_app.html" %}
+{% load formatting %}
+
+{% block title %}Step 3: Your Results{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <div class="step-track">
+        <span class="step-pill">Step 1: List debts</span>
+        <span class="step-pill">Step 2: Choose strategy</span>
+        <span class="step-pill current">Step 3: Review results</span>
+      </div>
+      <h1 class="page-header__title">You could be debt-free by {{ plan.summary.projected_payoff_date_label }}.</h1>
+      <p class="page-header__copy">
+        This is your plain-language roadmap. Focus on <strong>{{ plan.summary.first_target }}</strong> first and roll each finished payment into the next debt.
+      </p>
+      <div class="page-header__actions">
+        <a class="button button-secondary" href="{% url 'core:planner_debts' %}">Edit debts</a>
+        <a class="button button-secondary" href="{% url 'core:planner_strategy' %}">Adjust strategy</a>
+        {% if user.is_authenticated and capabilities.can_print %}
+          <a class="button button-ghost" href="{% url 'exports:draft_print' %}">Open print view</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="page-header__body">
+      <div class="stack">
+        <span class="badge">Current strategy: {{ plan.strategy_label }}</span>
+        <div class="muted">Minimum payments plus your extra monthly amount create the timeline below. If the plan does not feel realistic, change the strategy or edit the debt list before you save it.</div>
+      </div>
+      <article class="help-box">
+        <strong>First target: {{ plan.summary.first_target }}</strong>
+        <div class="muted mt-3">Keep every extra dollar on that debt until it is gone. The next account inherits the full payment afterward.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <span>Total debt</span>
+      <strong>{{ plan.summary.total_debt|currency }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Total interest</span>
+      <strong>{{ plan.summary.total_interest|currency }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Total monthly payment</span>
+      <strong>{{ plan.summary.monthly_payment|currency }}</strong>
+    </article>
+    <article class="summary-card">
+      <span>Fastest first win</span>
+      <strong>{{ plan.summary.fastest_win_months }} months</strong>
+    </article>
+  </section>
+
+  <section class="page-grid">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Your debts</span>
+          <h3>Every account in one place</h3>
+        </div>
+      </div>
+      {% include "partials/debt_table.html" %}
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Next action</span>
+          <h3>What to do first</h3>
+          <p>Stay focused on one target so the process feels predictable.</p>
+        </div>
+      </div>
+      <div class="upgrade-box">
+        <strong>Put every extra dollar toward {{ plan.summary.first_target }} first.</strong>
+        <div class="muted">That keeps the plan simple and lets the next debt inherit the full payment sooner.</div>
+      </div>
+      <div class="chart-shell" style="margin-top:16px;">
+        <canvas id="results-chart"></canvas>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Strategy comparison</span>
+        <h3>See how the payoff paths compare</h3>
+      </div>
+    </div>
+    {% include "partials/comparison_cards.html" %}
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Monthly schedule</span>
+        <h3>Every payment, every month</h3>
+      </div>
+    </div>
+    {% include "partials/schedule_table.html" %}
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Save or upgrade</span>
+        <h3>Keep this plan handy</h3>
+        <p>Save it for later, print it for paper review, or unlock more room for scenario planning.</p>
+      </div>
+    </div>
+
+    {% if not user.is_authenticated %}
+      <div class="cta-box">
+        <strong>Create a free account to save one plan and unlock print view.</strong>
+      </div>
+      <div class="button-row" style="margin-top:16px;">
+        <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
+        <a class="button button-secondary" href="{% url 'account_login' %}">I already have an account</a>
+      </div>
+    {% else %}
+      {% if can_save_current_plan %}
+        <form class="inline-form" method="post" action="{% url 'plans:save_draft' %}">
+          {% csrf_token %}
+          <button class="button button-primary" type="submit">Save this plan</button>
+        </form>
+      {% else %}
+        <div class="upgrade-box">
+          <strong>{{ plan_limit_message }}</strong>
+        </div>
+      {% endif %}
+
+      <div class="button-row" style="margin-top:16px;">
+        <a class="button button-secondary" href="{% url 'plans:dashboard' %}">Go to my dashboard</a>
+        <a class="button button-secondary" href="{% url 'billing:pricing' %}">See paid features</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("results-chart");
+      if (!canvas || typeof Chart === "undefined") {
+        return;
+      }
+      new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: [{% for point in plan.monthly_totals %}"{{ point.month_label }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+          datasets: [{
+            label: "Balance remaining",
+            data: [{% for point in plan.monthly_totals %}{{ point.total_ending_balance }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            borderColor: "#3a73f8",
+            backgroundColor: "rgba(58, 115, 248, 0.12)",
+            tension: 0.2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { ticks: { callback: (value) => `$${Number(value).toLocaleString()}` } }
+          }
+        }
+      });
+    }());
+  </script>
+{% endblock %}

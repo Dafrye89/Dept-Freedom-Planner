@@ -1,0 +1,54 @@
+{% load static %}
+
+<header class="marketing-header">
+  <div class="marketing-nav">
+    <a class="brand-lockup" href="{% url 'core:home' %}">
+      <img src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+      <div class="brand-lockup__text">
+        <strong>Debt Freedom</strong>
+        <span>Planner</span>
+      </div>
+    </a>
+
+    <nav class="marketing-links" aria-label="Primary">
+      <a class="marketing-link" href="{% url 'core:home' %}">Home</a>
+      <a class="marketing-link" href="{% url 'billing:pricing' %}">Pricing</a>
+      <a class="marketing-link" href="{% url 'legal:privacy' %}">Privacy</a>
+      {% if user.is_authenticated %}
+        <a class="marketing-link" href="{% url 'plans:dashboard' %}">Dashboard</a>
+      {% else %}
+        <a class="marketing-link" href="{% url 'account_login' %}">Log in</a>
+      {% endif %}
+    </nav>
+
+    <div class="flex flex-wrap items-center justify-end gap-3">
+      <button type="button" class="sidebar-toggle !border-white/15 !bg-white/10 !text-white lg:hidden" @click="marketingMenuOpen = !marketingMenuOpen" aria-label="Open marketing navigation">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+      {% if user.is_authenticated %}
+        <a class="button-secondary hidden lg:inline-flex" href="{% url 'plans:dashboard' %}">Open dashboard</a>
+        <a class="button-primary" href="{% url 'core:planner_start' %}">Start a plan</a>
+      {% else %}
+        <a class="button-secondary hidden sm:inline-flex" href="{% url 'account_signup' %}">Create free account</a>
+        <a class="button-primary" href="{% url 'core:planner_start' %}">See my payoff plan</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="container-shell pb-4 lg:hidden" x-cloak x-show="marketingMenuOpen">
+    <div class="rounded-[1.5rem] border border-white/10 bg-white/10 p-4 backdrop-blur">
+      <nav class="grid gap-2" aria-label="Mobile primary">
+        <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:home' %}" @click="marketingMenuOpen = false">Home</a>
+        <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="marketingMenuOpen = false">Pricing</a>
+        <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'legal:privacy' %}" @click="marketingMenuOpen = false">Privacy</a>
+        {% if user.is_authenticated %}
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'plans:dashboard' %}" @click="marketingMenuOpen = false">Dashboard</a>
+        {% else %}
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_login' %}" @click="marketingMenuOpen = false">Log in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+</header>

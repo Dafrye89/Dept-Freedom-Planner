@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block body %}
+  <div class="shell-marker" data-shell="app"></div>
+  <div x-data="{ mobileNavOpen: false }">
+    {% include "partials/app_nav.html" %}
+
+    {% include "partials/messages.html" %}
+
+    <main class="container-shell py-4 lg:py-5">
+      <div class="main-shell">
+        {% block content %}{% endblock %}
+
+        <footer class="app-footer">
+          <div>Debt Freedom Planner is an educational payoff-planning tool and not legal, tax, or financial advice.</div>
+          <div class="footer-links mt-3">
+            <a href="{% url 'legal:privacy' %}">Privacy</a>
+            <a href="{% url 'legal:terms' %}">Terms</a>
+            <a href="{% url 'legal:disclaimer' %}">Disclaimer</a>
+          </div>
+        </footer>
+      </div>
+    </main>
+  </div>
+{% endblock %}

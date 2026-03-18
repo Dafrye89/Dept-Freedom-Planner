@@ -1,0 +1,22 @@
+{% load formatting %}
+<div class="comparison-grid">
+  {% for key, comparison in comparisons.items %}
+    <article class="summary-card comparison-card">
+      <span>{{ comparison.comparison_label|default:comparison.strategy_label }}</span>
+      <strong class="comparison-card__date">{{ comparison.summary.projected_payoff_date_label }}</strong>
+      <div class="comparison-card__stats">
+        <div>{{ comparison.summary.months_to_payoff }} months to payoff</div>
+        <div>{{ comparison.summary.total_interest|currency }} interest</div>
+      </div>
+      <div class="mt-3">
+        {% if key == "snowball" %}
+          <span class="badge badge-success">Best for motivation</span>
+        {% elif key == "avalanche" %}
+          <span class="badge">Lowest interest</span>
+        {% else %}
+          <span class="badge badge-danger">Custom order</span>
+        {% endif %}
+      </div>
+    </article>
+  {% endfor %}
+</div>

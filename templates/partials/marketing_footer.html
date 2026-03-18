@@ -1,0 +1,22 @@
+{% load static %}
+
+<footer class="marketing-footer">
+  <div class="marketing-footer__inner">
+    <div class="flex items-center gap-4">
+      <img class="h-12 w-auto" src="{% static 'img/branding/logo-dark.png' %}" alt="Debt Freedom Planner logo">
+      <div>
+        <div class="font-heading text-lg font-bold uppercase tracking-[0.18em] text-patriotic-navy">Debt Freedom Planner</div>
+        <div class="text-sm text-patriotic-mute">Plain-language debt payoff planning for households that want clarity fast.</div>
+      </div>
+    </div>
+    <div class="text-sm leading-6 text-patriotic-mute md:max-w-md md:text-right">
+      Debt Freedom Planner is an educational tool. Always confirm balances, minimum payments, and lender terms before acting on any plan.
+      <div class="footer-links mt-3 md:justify-end">
+        <a href="{% url 'billing:pricing' %}">Pricing</a>
+        <a href="{% url 'legal:privacy' %}">Privacy</a>
+        <a href="{% url 'legal:terms' %}">Terms</a>
+        <a href="{% url 'legal:disclaimer' %}">Disclaimer</a>
+      </div>
+    </div>
+  </div>
+</footer>

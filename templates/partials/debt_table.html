@@ -1,0 +1,41 @@
+{% load formatting %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Debt</th>
+        <th>Balance</th>
+        <th>APR</th>
+        <th>Minimum</th>
+        <th>Focus order</th>
+        <th>Projected payoff</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for debt in plan.debts %}
+        <tr>
+          <td>
+            <strong>{{ debt.name }}</strong>
+            <div class="muted">{{ debt.lender|default:"No lender listed" }}</div>
+          </td>
+          <td>{{ debt.balance|currency }}</td>
+          <td>{{ debt.apr|percent }}</td>
+          <td>{{ debt.minimum_payment|currency }}</td>
+          <td>
+            <span class="badge">#{{ debt.focus_rank }}</span>
+          </td>
+          <td>
+            <strong>{{ debt.projected_payoff_month_label }}</strong>
+            <div class="muted">
+              {% if debt.paid_off_month %}
+                Paid off in {{ debt.paid_off_month }} month{{ debt.paid_off_month|pluralize }}
+              {% else %}
+                Needs a larger payment
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

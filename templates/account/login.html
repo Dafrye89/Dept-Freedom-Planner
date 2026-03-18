@@ -1,0 +1,65 @@
+{% extends "base_marketing.html" %}
+{% load socialaccount %}
+
+{% block title %}Log In{% endblock %}
+
+{% block content %}
+  <section class="auth-panel">
+    <div class="auth-grid">
+      <div class="auth-copy">
+        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Account</span>
+        <h1>Log in</h1>
+        <p>Use your email and password to reopen saved plans, print your roadmap, and manage your account.</p>
+        <div class="auth-points">
+          <article class="auth-point">
+            <span>Free access</span>
+            <strong>Save one plan</strong>
+            <p>Enough to keep one roadmap on hand and print it later.</p>
+          </article>
+          <article class="auth-point">
+            <span>Paid access</span>
+            <strong>Unlimited plans and PDF</strong>
+            <p>Built for households that want more than one scenario or export.</p>
+          </article>
+        </div>
+      </div>
+      <div class="auth-form">
+        <form method="post" action="{% url 'account_login' %}">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="auth-form__fields">
+            {% for field in form %}
+              <div>
+                {% if field.field.widget.input_type == "checkbox" %}
+                  <label class="checkbox-row">
+                    {{ field }}
+                    <span>{{ field.label }}</span>
+                  </label>
+                {% else %}
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                {% endif %}
+                {% if field.help_text %}
+                  <div class="hint">{{ field.help_text }}</div>
+                {% endif %}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="button-row mt-6">
+            <button class="button button-primary" type="submit">Log in</button>
+          </div>
+        </form>
+        {% if google_login_enabled %}
+          <div class="button-row" style="margin-top:16px;">
+            <a class="button button-secondary" href="{% provider_login_url 'google' %}">Continue with Google</a>
+          </div>
+        {% endif %}
+        <div class="button-row" style="margin-top:16px;">
+          <a class="button button-secondary" href="{% url 'account_reset_password' %}">Forgot password</a>
+          <a class="button button-secondary" href="{% url 'account_signup' %}">Create account</a>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base_app.html" %}
+
+{% block title %}Edit {{ saved_plan.title }}{% endblock %}
+
+{% block content %}
+  <section class="page-header">
+    <div class="page-header__band">
+      <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Edit saved plan</span>
+      <h1 class="page-header__title">Update {{ saved_plan.title }}</h1>
+      <p class="page-header__copy">Change balances, minimum payments, due dates, or strategy settings, then save to refresh the payoff date.</p>
+    </div>
+    <div class="page-header__body">
+      <div class="summary-grid xl:!grid-cols-2">
+        <article class="summary-card">
+          <span>Current strategy</span>
+          <strong>{{ saved_plan.get_strategy_type_display }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Extra monthly payment</span>
+          <strong>${{ saved_plan.extra_monthly_payment }}</strong>
+        </article>
+      </div>
+      <article class="notice-box">
+        <strong>Saved scenarios refresh automatically.</strong>
+        <div class="muted mt-3">After you save, built-in comparisons recalculate and old custom scenarios are cleared so the numbers stay trustworthy.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field-grid">
+        <div class="field">
+          <label for="{{ form.title.id_for_label }}">Plan title</label>
+          {{ form.title }}
+        </div>
+        <div class="field">
+          <label for="{{ form.household_name.id_for_label }}">Household label</label>
+          {{ form.household_name }}
+        </div>
+        <div class="field">
+          <label for="{{ form.strategy_type.id_for_label }}">Strategy</label>
+          {{ form.strategy_type }}
+        </div>
+        <div class="field">
+          <label for="{{ form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
+          {{ form.extra_monthly_payment }}
+        </div>
+      </div>
+
+      <div class="panel-header" style="margin-top:24px;">
+        <div>
+          <span class="eyebrow">Debt list</span>
+          <h3>Update each debt</h3>
+        </div>
+      </div>
+
+      <div data-formset-root>
+        {{ formset.management_form }}
+        <div class="stack" data-formset-forms>
+          {% for debt_form in formset.forms %}
+            {% include "partials/debt_form_row.html" with form=debt_form %}
+          {% endfor %}
+        </div>
+        <template>
+          {% include "partials/debt_form_row.html" with form=formset.empty_form %}
+        </template>
+        <div class="button-row" style="margin-top:16px;">
+          <a class="button button-secondary" href="{% url 'plans:detail' saved_plan.pk %}">Back to saved plan</a>
+          <button type="button" class="button button-secondary" data-add-form>Add another debt</button>
+          <button type="submit" class="button button-primary">Save updates</button>
+        </div>
+      </div>
+    </form>
+  </section>
+{% endblock %}
