@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.management.base import BaseCommand
 
 from accounts.models import CustomUser
@@ -41,6 +42,14 @@ class Command(BaseCommand):
         if not access.lifetime_override:
             access.lifetime_override = True
             access.save(update_fields=["lifetime_override", "updated_at"])
+
+        Site.objects.update_or_create(
+            pk=settings.SITE_ID,
+            defaults={
+                "domain": settings.APP_BASE_HOST,
+                "name": "Debt Freedom Planner",
+            },
+        )
 
         self.stdout.write(
             self.style.SUCCESS(

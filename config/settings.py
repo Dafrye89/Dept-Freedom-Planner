@@ -42,10 +42,13 @@ def _unique(values):
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+WEBSITE_HOSTNAME = os.environ.get("WEBSITE_HOSTNAME", "").strip()
+RUNNING_ON_AZURE = bool(WEBSITE_HOSTNAME)
 env = environ.Env(
     ALLOWED_HOSTS=(list, ["127.0.0.1", "localhost", "testserver"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
     APP_BASE_URL=(str, AZURE_DEFAULT_HTTPS_URL),
+    AZURE_SQLITE_DIR=(str, "/home/data/debt_freedom_planner"),
     GOOGLE_CLIENT_ID=(str, ""),
     GOOGLE_CLIENT_SECRET=(str, ""),
     DEFAULT_FROM_EMAIL=(str, "noreply@debtfreedomplanner.local"),
@@ -56,14 +59,21 @@ env = environ.Env(
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
-DEBUG = env_bool("DEBUG", True)
+DEBUG = env_bool("DEBUG", not RUNNING_ON_AZURE)
 SECRET_KEY = env(
     "SECRET_KEY",
     default="django-insecure-debt-freedom-planner-local-only-secret-key",
 )
 APP_BASE_URL = env("APP_BASE_URL").rstrip("/")
 APP_BASE_HOST = APP_BASE_URL.split("://", 1)[-1].split("/", 1)[0]
-WEBSITE_HOSTNAME = os.environ.get("WEBSITE_HOSTNAME", "").strip()
+AZURE_SQLITE_DIR = Path(env("AZURE_SQLITE_DIR"))
+if RUNNING_ON_AZURE:
+    AZURE_SQLITE_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_DATABASE_URL = (
+    f"sqlite:///{AZURE_SQLITE_DIR / 'db.sqlite3'}"
+    if RUNNING_ON_AZURE
+    else f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+)
 
 configured_allowed_hosts = _clean_list(env("ALLOWED_HOSTS"))
 runtime_allowed_hosts = _clean_list(
@@ -93,7 +103,7 @@ EMAIL_BACKEND = env("EMAIL_BACKEND")
 BOOTSTRAP_SUPERUSER_USERNAME = env("BOOTSTRAP_SUPERUSER_USERNAME")
 BOOTSTRAP_SUPERUSER_PASSWORD = env("BOOTSTRAP_SUPERUSER_PASSWORD")
 BOOTSTRAP_SUPERUSER_EMAIL = env("BOOTSTRAP_SUPERUSER_EMAIL")
-DATABASE_URL = env("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+DATABASE_URL = env("DATABASE_URL", default=DEFAULT_DATABASE_URL)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
