@@ -53,4 +53,53 @@
       <button class="button button-primary" type="submit">Save settings</button>
     </div>
   </form>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Billing</span>
+        <h3>Subscription access</h3>
+        <p>Upgrade to Pro for unlimited plans, unlimited comparisons, and PDF export.</p>
+      </div>
+    </div>
+    <div class="page-grid">
+      <article class="summary-card">
+        <span>Current access</span>
+        <strong>{{ capabilities.tier_label }}</strong>
+      </article>
+      {% if capabilities.is_override %}
+        <article class="notice-box">
+          <strong>Founder access stays free.</strong>
+          <div class="muted mt-3">Your account includes Pro without a Stripe subscription.</div>
+        </article>
+      {% elif stripe_enabled and capabilities.is_paid %}
+        <article class="notice-box">
+          <strong>Stripe manages your subscription.</strong>
+          <div class="muted mt-3">Use the billing portal to update payment details or cancel.</div>
+        </article>
+      {% else %}
+        <article class="notice-box">
+          <strong>DFP Pro costs ${{ stripe_pro_monthly_price }}/month.</strong>
+          <div class="muted mt-3">Upgrade when you want unlimited plans, unlimited comparisons, and PDF export.</div>
+        </article>
+      {% endif %}
+    </div>
+    <div class="button-row mt-5">
+      {% if capabilities.is_override %}
+        <a class="button button-secondary" href="{% url 'plans:dashboard' %}">Return to dashboard</a>
+      {% elif stripe_enabled and capabilities.is_paid %}
+        <form method="post" action="{% url 'billing:portal' %}">
+          {% csrf_token %}
+          <button class="button button-primary" type="submit">Manage billing</button>
+        </form>
+      {% elif stripe_enabled %}
+        <form method="post" action="{% url 'billing:checkout' %}">
+          {% csrf_token %}
+          <button class="button button-primary" type="submit">Upgrade to Pro</button>
+        </form>
+      {% else %}
+        <a class="button button-secondary" href="{% url 'billing:pricing' %}">View pricing</a>
+      {% endif %}
+    </div>
+  </section>
 {% endblock %}

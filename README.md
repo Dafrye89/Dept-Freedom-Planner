@@ -86,9 +86,45 @@ Copy `.env.example` to `.env` and update values as needed. Important local value
 - `DATABASE_URL`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRO_PRICE_ID`
+- `STRIPE_PRO_PRODUCT_ID`
+- `STRIPE_PORTAL_CONFIGURATION_ID`
+- `STRIPE_PRO_MONTHLY_PRICE`
 - `BOOTSTRAP_SUPERUSER_USERNAME`
 - `BOOTSTRAP_SUPERUSER_PASSWORD`
 - `BOOTSTRAP_SUPERUSER_EMAIL`
+
+## Stripe
+
+The app uses Stripe Checkout for the Pro subscription, Stripe webhooks for subscription state changes, and the hosted Stripe Billing Portal for card updates and cancellation.
+
+Required environment values:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRO_PRICE_ID`
+
+Optional:
+
+- `STRIPE_PRO_PRODUCT_ID`
+- `STRIPE_PORTAL_CONFIGURATION_ID`
+- `STRIPE_PRO_MONTHLY_PRICE`
+
+Webhook endpoint:
+
+```text
+/pricing/webhook/
+```
+
+For the current Azure deployment URL, the full webhook target is:
+
+```text
+https://debt-freedom-planner-fgfxd3daanaud0fc.centralus-01.azurewebsites.net/pricing/webhook/
+```
 
 ## Project structure
 

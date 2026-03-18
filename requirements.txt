@@ -9,6 +9,7 @@ WeasyPrint==68.1
 whitenoise==6.12.0
 Pillow==12.1.1
 waitress==3.0.2
+stripe==14.0.1
 xhtml2pdf==0.2.17; sys_platform == "win32"
 pytest==9.0.2
 pytest-django==4.12.0

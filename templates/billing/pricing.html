@@ -6,7 +6,7 @@
   <section class="hero">
     <span class="eyebrow">Pricing</span>
     <h2>Choose the level that fits your household</h2>
-    <p>The free tier is designed to be genuinely useful. Paid access is for households who want unlimited saved plans and PDF exports.</p>
+    <p>The free tier is designed to be genuinely useful. Pro is ${{ stripe_pro_monthly_price }} per month for households who want unlimited saved plans, unlimited comparisons, and PDF export.</p>
   </section>
 
   <section class="page-grid">
@@ -26,17 +26,42 @@
 
     <article class="pricing-card">
       <span class="eyebrow">Paid</span>
-      <h3 class="mt-4 text-2xl font-bold">Unlimited planning</h3>
+      <h3 class="mt-4 text-2xl font-bold">DFP Pro for ${{ stripe_pro_monthly_price }}/month</h3>
       <p class="muted">Best for households that want exports and multiple plan scenarios.</p>
       <ul class="pricing-list">
         <li>Unlimited saved plans</li>
         <li>Unlimited strategy comparisons</li>
         <li>PDF export</li>
       </ul>
-      <div class="upgrade-box" style="margin-top:16px;">
-        <strong>Paid access is activated manually in v1.</strong>
-        <div class="muted">Once you create an account, the founder can activate paid access for you.</div>
-      </div>
+      {% if capabilities.is_override %}
+        <div class="upgrade-box" style="margin-top:16px;">
+          <strong>Founder access is already active.</strong>
+          <div class="muted">Your account includes every Pro feature without a Stripe subscription.</div>
+        </div>
+      {% elif not stripe_enabled %}
+        <div class="upgrade-box" style="margin-top:16px;">
+          <strong>Stripe is not configured yet.</strong>
+          <div class="muted">Add the Stripe keys, price ID, and webhook secret before enabling live upgrades.</div>
+        </div>
+      {% elif user.is_authenticated and capabilities.is_paid %}
+        <div class="card-actions" style="margin-top:16px;">
+          <form method="post" action="{% url 'billing:portal' %}">
+            {% csrf_token %}
+            <button class="button button-primary" type="submit">Manage billing</button>
+          </form>
+        </div>
+      {% elif user.is_authenticated %}
+        <div class="card-actions" style="margin-top:16px;">
+          <form method="post" action="{% url 'billing:checkout' %}">
+            {% csrf_token %}
+            <button class="button button-primary" type="submit">Start Pro subscription</button>
+          </form>
+        </div>
+      {% else %}
+        <div class="card-actions" style="margin-top:16px;">
+          <a class="button button-primary" href="{% url 'account_signup' %}">Create account to upgrade</a>
+        </div>
+      {% endif %}
     </article>
   </section>
 
@@ -44,17 +69,17 @@
     <div class="panel-header">
       <div>
         <span class="eyebrow">Good to know</span>
-        <h2>Paid activation is manual in v1.</h2>
+        <h2>Stripe handles the subscription flow.</h2>
       </div>
     </div>
     <div class="page-grid">
       <article class="notice-box">
         <strong>Create the account first.</strong>
-        <div class="muted mt-3">That gives the planner a place to attach your saved plans and future access updates.</div>
+        <div class="muted mt-3">The subscription is tied to your planner account so your saved plans and access stay together.</div>
       </article>
       <article class="notice-box">
-        <strong>The founder activates paid access.</strong>
-        <div class="muted mt-3">Billing automation can come later. For now, access is managed manually so the product can stay focused on planning.</div>
+        <strong>Billing changes happen in the Stripe portal.</strong>
+        <div class="muted mt-3">Paid users can update cards, cancel, or review subscription details through Stripe’s hosted billing portal.</div>
       </article>
     </div>
   </section>

@@ -1,9 +1,14 @@
 from django.urls import path
 
-from .views import pricing
+from .views import checkout, checkout_cancel, checkout_success, portal, pricing, stripe_webhook
 
 app_name = "billing"
 
 urlpatterns = [
     path("", pricing, name="pricing"),
+    path("checkout/", checkout, name="checkout"),
+    path("checkout/success/", checkout_success, name="checkout_success"),
+    path("checkout/cancel/", checkout_cancel, name="checkout_cancel"),
+    path("portal/", portal, name="portal"),
+    path("webhook/", stripe_webhook, name="stripe_webhook"),
 ]

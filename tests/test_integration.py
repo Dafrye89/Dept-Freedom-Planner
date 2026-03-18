@@ -1,9 +1,12 @@
+from unittest.mock import patch
+
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser
+from billing.models import StripeWebhookEvent
 from core.services.draft import DRAFT_SESSION_KEY
 from plans.models import DebtPlan, ScenarioComparison
 from plans.services import create_saved_plan_from_draft
@@ -191,6 +194,144 @@ class IntegrationTests(TestCase):
 
         self.assertRedirects(response, reverse("billing:pricing"), fetch_redirect_response=False)
         self.assertFalse(ScenarioComparison.objects.filter(debt_plan=plan, scenario_name="Blocked").exists())
+
+    @patch("billing.views.create_checkout_session", return_value="https://checkout.stripe.com/pay/cs_test_123")
+    def test_logged_in_free_user_can_start_stripe_checkout(self, mocked_checkout):
+        user = self.create_user("stripefree", "stripefree@example.com")
+        self.client.force_login(user)
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+            STRIPE_PUBLISHABLE_KEY="pk_test_123",
+        ):
+            response = self.client.post(reverse("billing:checkout"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://checkout.stripe.com/pay/cs_test_123")
+        mocked_checkout.assert_called_once_with(user=user)
+
+    @patch("billing.views.create_portal_session", return_value="https://billing.stripe.com/session/test_123")
+    def test_paid_user_can_open_stripe_portal(self, mocked_portal):
+        user = self.create_user("stripepaid", "stripepaid@example.com", paid=True)
+        user.subscription_access.stripe_customer_id = "cus_123"
+        user.subscription_access.save(update_fields=["stripe_customer_id", "updated_at"])
+        self.client.force_login(user)
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+        ):
+            response = self.client.post(reverse("billing:portal"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://billing.stripe.com/session/test_123")
+        mocked_portal.assert_called_once_with(user=user)
+
+    @patch(
+        "billing.services.stripe.Subscription.retrieve",
+        return_value={
+            "id": "sub_123",
+            "customer": "cus_123",
+            "status": "active",
+            "cancel_at_period_end": False,
+            "current_period_end": 1775000000,
+            "items": {"data": [{"price": {"id": "price_test_123"}}]},
+        },
+    )
+    @patch(
+        "billing.views.construct_stripe_event",
+        return_value={
+            "id": "evt_checkout_123",
+            "type": "checkout.session.completed",
+            "livemode": False,
+            "data": {
+                "object": {
+                    "id": "cs_123",
+                    "customer": "cus_123",
+                    "subscription": "sub_123",
+                    "client_reference_id": "1",
+                    "metadata": {"user_id": "1"},
+                }
+            },
+        },
+    )
+    def test_checkout_completed_webhook_activates_paid_access(self, mocked_construct_event, mocked_subscription_retrieve):
+        user = self.create_user("webhookuser", "webhook@example.com")
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+            STRIPE_WEBHOOK_SECRET="whsec_test_123",
+        ):
+            event = mocked_construct_event.return_value
+            event["data"]["object"]["client_reference_id"] = str(user.pk)
+            event["data"]["object"]["metadata"]["user_id"] = str(user.pk)
+
+            response = self.client.post(
+                reverse("billing:stripe_webhook"),
+                data=b"{}",
+                content_type="application/json",
+                HTTP_STRIPE_SIGNATURE="sig_test_123",
+            )
+
+        user.refresh_from_db()
+        access = user.subscription_access
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(access.tier, access.Tier.PAID)
+        self.assertEqual(access.stripe_customer_id, "cus_123")
+        self.assertEqual(access.stripe_subscription_id, "sub_123")
+        self.assertEqual(access.stripe_status, "active")
+        self.assertTrue(StripeWebhookEvent.objects.filter(stripe_event_id="evt_checkout_123").exists())
+        mocked_construct_event.assert_called_once()
+        mocked_subscription_retrieve.assert_called_once_with("sub_123")
+
+    @patch(
+        "billing.views.construct_stripe_event",
+        return_value={
+            "id": "evt_subscription_deleted_123",
+            "type": "customer.subscription.deleted",
+            "livemode": False,
+            "data": {
+                "object": {
+                    "id": "sub_123",
+                    "customer": "cus_123",
+                    "status": "canceled",
+                    "cancel_at_period_end": False,
+                    "current_period_end": 1775000000,
+                    "items": {"data": [{"price": {"id": "price_test_123"}}]},
+                }
+            },
+        },
+    )
+    def test_subscription_deleted_webhook_downgrades_paid_access(self, mocked_construct_event):
+        user = self.create_user("downgradeuser", "downgrade@example.com", paid=True)
+        user.subscription_access.sync_stripe_subscription(
+            customer_id="cus_123",
+            subscription_id="sub_123",
+            price_id="price_test_123",
+            status="active",
+            current_period_end=1775000000,
+            notes="setup",
+        )
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+            STRIPE_WEBHOOK_SECRET="whsec_test_123",
+        ):
+            response = self.client.post(
+                reverse("billing:stripe_webhook"),
+                data=b"{}",
+                content_type="application/json",
+                HTTP_STRIPE_SIGNATURE="sig_test_123",
+            )
+
+        user.refresh_from_db()
+        access = user.subscription_access
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(access.tier, access.Tier.FREE)
+        self.assertEqual(access.stripe_status, "canceled")
 
     def test_bootstrap_superuser_command_creates_founder(self):
         call_command("bootstrap_superuser")

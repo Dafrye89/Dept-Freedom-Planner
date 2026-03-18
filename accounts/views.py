@@ -1,8 +1,11 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from .forms import ProfileSettingsForm, UserSettingsForm
+from .services.access import get_capabilities
+from billing.services import is_stripe_configured
 
 
 @login_required
@@ -25,6 +28,9 @@ def account_settings(request):
         {
             "user_form": user_form,
             "profile_form": profile_form,
+            "capabilities": get_capabilities(request.user),
+            "stripe_enabled": is_stripe_configured(),
+            "stripe_pro_monthly_price": settings.STRIPE_PRO_MONTHLY_PRICE,
         },
     )
 
