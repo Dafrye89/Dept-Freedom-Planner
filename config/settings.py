@@ -4,6 +4,10 @@ from pathlib import Path
 import environ
 
 
+AZURE_DEFAULT_HOSTNAME = "debt-freedom-planner-fgfxd3daanaud0fc.centralus-01.azurewebsites.net"
+AZURE_DEFAULT_HTTPS_URL = f"https://{AZURE_DEFAULT_HOSTNAME}"
+
+
 def env_bool(name: str, default: bool) -> bool:
     raw_value = os.environ.get(name)
     if raw_value is None:
@@ -16,10 +20,32 @@ def env_bool(name: str, default: bool) -> bool:
     return default
 
 
+def _clean_list(values):
+    cleaned = []
+    for value in values:
+        if not value:
+            continue
+        normalized = str(value).strip()
+        if normalized:
+            cleaned.append(normalized)
+    return cleaned
+
+
+def _unique(values):
+    seen = set()
+    ordered = []
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            ordered.append(value)
+    return ordered
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     ALLOWED_HOSTS=(list, ["127.0.0.1", "localhost", "testserver"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
+    APP_BASE_URL=(str, AZURE_DEFAULT_HTTPS_URL),
     GOOGLE_CLIENT_ID=(str, ""),
     GOOGLE_CLIENT_SECRET=(str, ""),
     DEFAULT_FROM_EMAIL=(str, "noreply@debtfreedomplanner.local"),
@@ -35,8 +61,30 @@ SECRET_KEY = env(
     "SECRET_KEY",
     default="django-insecure-debt-freedom-planner-local-only-secret-key",
 )
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")
-CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+APP_BASE_URL = env("APP_BASE_URL").rstrip("/")
+APP_BASE_HOST = APP_BASE_URL.split("://", 1)[-1].split("/", 1)[0]
+WEBSITE_HOSTNAME = os.environ.get("WEBSITE_HOSTNAME", "").strip()
+
+configured_allowed_hosts = _clean_list(env("ALLOWED_HOSTS"))
+runtime_allowed_hosts = _clean_list(
+    [
+        AZURE_DEFAULT_HOSTNAME,
+        APP_BASE_HOST,
+        WEBSITE_HOSTNAME,
+    ]
+)
+ALLOWED_HOSTS = _unique(configured_allowed_hosts + runtime_allowed_hosts)
+
+configured_csrf_trusted_origins = _clean_list(env("CSRF_TRUSTED_ORIGINS"))
+runtime_csrf_trusted_origins = _clean_list(
+    [
+        APP_BASE_URL,
+        AZURE_DEFAULT_HTTPS_URL,
+        f"https://{WEBSITE_HOSTNAME}" if WEBSITE_HOSTNAME else "",
+    ]
+)
+CSRF_TRUSTED_ORIGINS = _unique(configured_csrf_trusted_origins + runtime_csrf_trusted_origins)
+
 GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = env("GOOGLE_CLIENT_SECRET")
 GOOGLE_LOGIN_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
@@ -171,7 +219,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = False
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https" if APP_BASE_URL.startswith("https://") or not DEBUG else "http"
 ACCOUNT_ADAPTER = "accounts.adapter.PlannerAccountAdapter"
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
