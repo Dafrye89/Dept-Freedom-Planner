@@ -1,7 +1,10 @@
+from datetime import date, timedelta
+from decimal import Decimal
 from io import StringIO
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
@@ -10,8 +13,8 @@ from accounts.models import CustomUser
 from billing.models import StripeWebhookEvent
 from billing.services import create_checkout_session
 from core.services.draft import DRAFT_SESSION_KEY
-from plans.models import DebtPlan, ScenarioComparison
-from plans.services import create_saved_plan_from_draft
+from plans.models import DebtPlan, MonthlyCheckIn, ScenarioComparison
+from plans.services import build_plan_view_data, create_saved_plan_from_draft
 
 
 def sample_draft(title="Debt Freedom Roadmap"):
@@ -24,6 +27,7 @@ def sample_draft(title="Debt Freedom Roadmap"):
             {
                 "name": "Card One",
                 "lender_name": "Liberty Bank",
+                "debt_type": "credit_card",
                 "balance": "1200.00",
                 "apr": "18.00",
                 "minimum_payment": "55.00",
@@ -34,6 +38,7 @@ def sample_draft(title="Debt Freedom Roadmap"):
             {
                 "name": "Car Note",
                 "lender_name": "Main Street Credit",
+                "debt_type": "vehicle",
                 "balance": "4200.00",
                 "apr": "7.50",
                 "minimum_payment": "180.00",
@@ -103,6 +108,51 @@ class IntegrationTests(TestCase):
             self.assertEqual(response.status_code, 302)
             self.assertIn(reverse("account_signup"), response["Location"])
 
+    def test_planner_debts_requires_debt_type(self):
+        user = self.create_user("debtformuser", "debtform@example.com")
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("core:planner_debts"),
+            {
+                "details-title": "Required Debt Type Plan",
+                "details-household_name": "Household",
+                "debts-TOTAL_FORMS": "1",
+                "debts-INITIAL_FORMS": "0",
+                "debts-MIN_NUM_FORMS": "1",
+                "debts-MAX_NUM_FORMS": "10",
+                "debts-0-name": "Visa",
+                "debts-0-lender_name": "Bank",
+                "debts-0-debt_type": "",
+                "debts-0-balance": "1000.00",
+                "debts-0-apr": "19.00",
+                "debts-0-minimum_payment": "45.00",
+                "debts-0-due_day": "12",
+                "debts-0-notes": "",
+                "debts-0-custom_order": "1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This field is required.")
+
+    def test_planner_strategy_requires_explicit_extra_payment_choice(self):
+        user = self.create_user("strategyuser", "strategyuser@example.com")
+        self.client.force_login(user)
+        self.set_draft(sample_draft())
+
+        response = self.client.post(
+            reverse("core:planner_strategy"),
+            {
+                "strategy-strategy_type": "snowball",
+                "strategy-extra_payment_preset": "",
+                "strategy-extra_monthly_payment": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Choose an extra monthly payment amount.")
+
     def test_homepage_redirects_authenticated_users_to_dashboard(self):
         user = self.create_user("dashboarduser", "dashboard@example.com")
         self.client.force_login(user)
@@ -151,6 +201,15 @@ class IntegrationTests(TestCase):
 
         self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
 
+    def test_free_user_cannot_export_csv(self):
+        user = self.create_user("freecsv", "freecsv@example.com")
+        plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("exports:plan_csv", args=[plan.pk]))
+
+        self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
+
     def test_paid_user_can_export_pdf(self):
         user = self.create_user("paidpdf", "paidpdf@example.com", paid=True)
         plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
@@ -160,6 +219,17 @@ class IntegrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_paid_user_can_export_csv(self):
+        user = self.create_user("paidcsv", "paidcsv@example.com", paid=True)
+        plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("exports:plan_csv", args=[plan.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv")
+        self.assertContains(response, "Month,Debt,Starting Balance,Interest,Payment,Ending Balance,Status")
 
     def test_paid_user_can_add_custom_scenario(self):
         user = self.create_user("paiduser", "paidscenario@example.com", paid=True)
@@ -201,6 +271,21 @@ class IntegrationTests(TestCase):
         self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
         self.assertFalse(ScenarioComparison.objects.filter(debt_plan=plan, scenario_name="Blocked").exists())
 
+    def test_paid_user_sees_pro_branding_without_upgrade_links(self):
+        user = self.create_user("paidbrand", "paidbrand@example.com", paid=True)
+        plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
+        self.client.force_login(user)
+
+        dashboard_response = self.client.get(reverse("plans:dashboard"))
+        detail_response = self.client.get(reverse("plans:detail", args=[plan.pk]))
+
+        self.assertContains(dashboard_response, "logo-pro.png")
+        self.assertNotContains(dashboard_response, "Compare free and paid")
+        self.assertNotContains(dashboard_response, "Pricing")
+        self.assertContains(detail_response, "logo-pro.png")
+        self.assertNotContains(detail_response, "Paid access unlocks unlimited custom scenario comparisons.")
+        self.assertNotContains(detail_response, "Compare free and paid")
+
     def test_free_user_cannot_access_second_schedule_page(self):
         user = self.create_user("schedulefree", "schedulefree@example.com")
         self.client.force_login(user)
@@ -209,6 +294,68 @@ class IntegrationTests(TestCase):
         response = self.client.get(reverse("core:planner_results"), {"schedule_page": 2})
 
         self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
+
+    def test_monthly_checkin_updates_saved_plan_history_and_progress(self):
+        user = self.create_user("checkinuser", "checkin@example.com", paid=True)
+        draft = sample_draft("Check-in Plan")
+        draft["extra_monthly_payment"] = "200.00"
+        plan = create_saved_plan_from_draft(user=user, draft=draft)
+        plan.checkins_active = True
+        plan.checkin_anchor_date = date.today().replace(day=1)
+        plan.save(update_fields=["checkins_active", "checkin_anchor_date", "updated_at"])
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("plans:submit_checkin", args=[plan.pk]),
+            {
+                "status": "skipped_extra",
+                "extra_monthly_payment": "",
+            },
+        )
+
+        self.assertRedirects(response, reverse("plans:detail", args=[plan.pk]), fetch_redirect_response=False)
+        checkin = MonthlyCheckIn.objects.get(debt_plan=plan, month_index=1)
+        self.assertEqual(checkin.status, MonthlyCheckIn.Status.SKIPPED_EXTRA)
+        self.assertEqual(checkin.extra_payment_amount, Decimal("0.00"))
+        progress = build_plan_view_data(plan)["progress"]
+        self.assertEqual(progress["month_index"], 1)
+        monthly_totals = build_plan_view_data(plan)["result"]["monthly_totals"]
+        self.assertEqual(monthly_totals[0]["extra_payment"], Decimal("0.00"))
+
+    def test_account_settings_allows_avatar_upload(self):
+        user = self.create_user("avataruser", "avatar@example.com")
+        self.client.force_login(user)
+        avatar = SimpleUploadedFile(
+            "avatar.gif",
+            (
+                b"GIF89a\x01\x00\x01\x00\x80\x00\x00"
+                b"\x00\x00\x00\xff\xff\xff!\xf9\x04\x01"
+                b"\x00\x00\x00\x00,\x00\x00\x00\x00\x01"
+                b"\x00\x01\x00\x00\x02\x02D\x01\x00;"
+            ),
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("accounts:settings"),
+            {
+                "user-username": user.username,
+                "user-email": user.email,
+                "user-first_name": "Avatar",
+                "user-last_name": "User",
+                "profile-display_name": "Avatar User",
+                "profile-timezone": "America/Chicago",
+                "profile-marketing_opt_in": "on",
+                "profile-avatar": avatar,
+            },
+            follow=True,
+        )
+
+        user.refresh_from_db()
+        self.assertRedirects(response, reverse("accounts:settings"))
+        self.assertTrue(bool(user.profile.avatar))
+        dashboard_response = self.client.get(reverse("plans:dashboard"))
+        self.assertContains(dashboard_response, "/media/avatars/")
 
     @patch("billing.views.create_checkout_session", return_value="https://checkout.stripe.com/pay/cs_test_123")
     def test_logged_in_free_user_can_start_stripe_checkout(self, mocked_checkout):

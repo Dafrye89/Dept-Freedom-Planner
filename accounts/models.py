@@ -27,6 +27,8 @@ class CustomUser(AbstractUser):
 class Profile(models.Model):
     user = models.OneToOneField("accounts.CustomUser", on_delete=models.CASCADE, related_name="profile")
     display_name = models.CharField(max_length=120, blank=True)
+    avatar = models.ImageField(upload_to="avatars/", blank=True)
+    google_avatar_url = models.URLField(blank=True)
     timezone = models.CharField(max_length=64, default="America/Chicago")
     marketing_opt_in = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

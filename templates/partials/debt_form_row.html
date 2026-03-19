@@ -18,6 +18,11 @@
       {{ form.lender_name.errors }}
     </div>
     <div class="field">
+      <label for="{{ form.debt_type.id_for_label }}">Debt type</label>
+      {{ form.debt_type }}
+      {{ form.debt_type.errors }}
+    </div>
+    <div class="field">
       <label for="{{ form.balance.id_for_label }}">Current balance</label>
       {{ form.balance }}
       {{ form.balance.errors }}

@@ -19,7 +19,7 @@
           {% if branding_logo_data_uri %}
             <img src="{{ branding_logo_data_uri }}" alt="Debt Freedom Planner logo">
           {% else %}
-            <img src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+            <img src="{% static branding_logo_path|default:'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
           {% endif %}
         </div>
         <div class="print-header__copy">
@@ -61,7 +61,7 @@
       <div class="panel-header">
         <div>
           <span class="eyebrow">Monthly schedule</span>
-          <h2>First 18 rows of the payoff schedule</h2>
+          <h2>{% if full_schedule_export %}Full payoff schedule{% else %}First 18 rows of the payoff schedule{% endif %}</h2>
         </div>
       </div>
       {% include "partials/schedule_table.html" %}

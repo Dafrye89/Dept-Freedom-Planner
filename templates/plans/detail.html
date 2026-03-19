@@ -1,5 +1,5 @@
 {% extends "base_app.html" %}
-{% load formatting %}
+{% load formatting static %}
 
 {% block title %}{{ saved_plan.title }}{% endblock %}
 
@@ -13,12 +13,14 @@
         <a class="button button-primary" href="{% url 'plans:edit' saved_plan.pk %}">Edit this plan</a>
         <a class="button button-secondary" href="{% url 'exports:plan_print' saved_plan.pk %}">Print view</a>
         <a class="button button-secondary" href="{% url 'exports:plan_pdf' saved_plan.pk %}">Download PDF</a>
+        <a class="button button-secondary" href="{% url 'exports:plan_csv' saved_plan.pk %}">Export CSV</a>
       </div>
     </div>
     <div class="page-header__body">
       <div class="stack">
         <span class="badge">Current strategy: {{ plan.strategy_label }}</span>
         <div class="muted">Use the comparison and scenario sections below if you want to test a different pace or payoff order.</div>
+        <div class="muted">Progress tracked through: {{ progress.month_label|default:"Plan start" }}</div>
       </div>
       <article class="help-box">
         <strong>First target: {{ plan.summary.first_target }}</strong>
@@ -32,6 +34,81 @@
     <article class="summary-card"><span>Total interest</span><strong>{{ plan.summary.total_interest|currency }}</strong></article>
     <article class="summary-card"><span>Monthly payment</span><strong>{{ plan.summary.monthly_payment|currency }}</strong></article>
     <article class="summary-card"><span>First target</span><strong>{{ plan.summary.first_target }}</strong></article>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card"><span>Progress to debt-free</span><strong>{{ progress.progress_percent }}%</strong></article>
+    <article class="summary-card"><span>Debts cleared</span><strong>{{ progress.debts_cleared }}/{{ progress.total_debts }}</strong></article>
+    <article class="summary-card"><span>Total paid off</span><strong>{{ progress.total_paid_off|currency }}</strong></article>
+    <article class="summary-card"><span>Remaining balance</span><strong>{{ progress.remaining_balance|currency }}</strong></article>
+  </section>
+
+  {% if new_badges %}
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Badge unlocked</span>
+          <h3>You earned a new reward</h3>
+        </div>
+      </div>
+      <div class="card-actions">
+        {% for badge in new_badges %}
+          <article class="summary-card">
+            <img src="{% static badge.badge_image %}" alt="{{ badge.badge_name }}" class="mx-auto h-20 w-20 border-2 border-slate-200 bg-slate-50 p-2">
+            <span>{{ badge.badge_name }}</span>
+            <strong>{{ badge.debt_item.name }}</strong>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if due_checkin %}
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Monthly check-in</span>
+          <h3>Did you make your payments for {{ due_checkin.month_label }}?</h3>
+        </div>
+      </div>
+      <form class="stack" method="post" action="{% url 'plans:submit_checkin' saved_plan.pk %}">
+        {% csrf_token %}
+        <div class="field">
+          <label for="{{ monthly_checkin_form.status.id_for_label }}">Update for {{ due_checkin.month_label }}</label>
+          {{ monthly_checkin_form.status }}
+        </div>
+        <div class="field">
+          <label for="{{ monthly_checkin_form.extra_monthly_payment.id_for_label }}">Custom extra payment for this month</label>
+          {{ monthly_checkin_form.extra_monthly_payment }}
+          <div class="hint">Only use this if you chose a different extra payment amount.</div>
+        </div>
+        <div class="button-row">
+          <button class="button button-primary" type="submit">Save monthly check-in</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Plan controls</span>
+        <h3>Update pace and reminders</h3>
+      </div>
+    </div>
+    <form class="stack" method="post" action="{% url 'plans:update_pace' saved_plan.pk %}">
+      {% csrf_token %}
+      {% include "partials/extra_payment_fields.html" with form=pace_form %}
+      <div class="button-row">
+        <button class="button button-primary" type="submit">Update extra monthly payment</button>
+      </div>
+    </form>
+    <form method="post" action="{% url 'plans:toggle_checkins' saved_plan.pk %}" style="margin-top:16px;">
+      {% csrf_token %}
+      <button class="button button-secondary" type="submit">
+        {% if saved_plan.checkins_active %}Pause monthly check-ins{% else %}Activate monthly check-ins{% endif %}
+      </button>
+    </form>
   </section>
 
   <section class="panel">
@@ -74,7 +151,13 @@
       <div>
         <span class="eyebrow">Scenario lab</span>
         <h3>Compare extra what-if cases</h3>
-        <p>Paid access lets you store custom scenarios beside the built-in strategy comparison.</p>
+        <p>
+          {% if capabilities.can_compare_unlimited %}
+            Store extra what-if cases beside the built-in strategy comparison.
+          {% else %}
+            Paid access lets you store custom scenarios beside the built-in strategy comparison.
+          {% endif %}
+        </p>
       </div>
     </div>
 
@@ -123,16 +206,44 @@
         <article class="summary-card">
           <span>No scenarios yet</span>
           <strong>Use the form above</strong>
-          <div class="muted">Paid users can save as many what-if comparisons as they need.</div>
+          <div class="muted">
+            {% if capabilities.can_compare_unlimited %}
+              Save as many what-if comparisons as you need.
+            {% else %}
+              Paid users can save as many what-if comparisons as they need.
+            {% endif %}
+          </div>
         </article>
       {% endfor %}
     </div>
   </section>
 
   <section class="panel">
-      <div class="panel-header">
-        <div>
-          <span class="eyebrow">Monthly schedule</span>
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Badges earned</span>
+        <h3>Your payoff rewards</h3>
+      </div>
+    </div>
+    {% if badges %}
+      <div class="card-actions">
+        {% for badge in badges %}
+          <article class="summary-card">
+            <img src="{% static badge.badge_image %}" alt="{{ badge.badge_name }}" class="mx-auto h-20 w-20 border-2 border-slate-200 bg-slate-50 p-2">
+            <span>{{ badge.badge_name }}</span>
+            <strong>{{ badge.debt_item.name }}</strong>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="muted">Keep checking in and paying down debts to unlock type-based payoff badges.</div>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Monthly schedule</span>
         <h3>Monthly payoff schedule</h3>
         </div>
       </div>

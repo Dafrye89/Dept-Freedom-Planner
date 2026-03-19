@@ -106,9 +106,9 @@
   <section class="panel">
     <div class="panel-header">
       <div>
-        <span class="eyebrow">Save or upgrade</span>
+        <span class="eyebrow">{% if capabilities.can_save_plans %}Save plan{% else %}Save or upgrade{% endif %}</span>
         <h3>Keep this plan handy</h3>
-        <p>Save it for later, print it for paper review, or unlock more room for scenario planning.</p>
+        <p>{% if capabilities.can_save_plans %}Save it for later or print it for paper review.{% else %}Save it for later, print it for paper review, or unlock more room for scenario planning.{% endif %}</p>
       </div>
     </div>
 
@@ -135,7 +135,9 @@
 
       <div class="button-row" style="margin-top:16px;">
         <a class="button button-secondary" href="{% url 'plans:dashboard' %}">Go to my dashboard</a>
-        <a class="button button-secondary" href="{% url 'accounts:settings' %}">See paid features</a>
+        {% if not capabilities.can_save_plans %}
+          <a class="button button-secondary" href="{% url 'accounts:settings' %}">See paid features</a>
+        {% endif %}
       </div>
     {% endif %}
   </section>

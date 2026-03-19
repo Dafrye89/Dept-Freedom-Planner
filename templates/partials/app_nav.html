@@ -3,7 +3,7 @@
 <header class="app-header">
   <div class="app-header__inner">
     <a class="brand-lockup" href="{% if user.is_authenticated %}{% url 'plans:dashboard' %}{% else %}{% url 'core:home' %}{% endif %}">
-      <img src="{% static 'img/branding/logo-light.png' %}" alt="Debt Freedom Planner logo">
+      <img src="{% static branding_logo_path %}" alt="Debt Freedom Planner logo">
       <div class="brand-lockup__text">
         <strong>Debt Freedom</strong>
         <span>Planner</span>
@@ -15,7 +15,9 @@
         <a class="app-link {% if request.resolver_match.namespace == 'plans' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'plans:dashboard' %}">Dashboard</a>
         <a class="app-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}">Start plan</a>
         <a class="app-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}" href="{% url 'accounts:settings' %}">Settings</a>
-        <a class="app-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:pricing' %}">Pricing</a>
+        {% if show_pricing_link %}
+          <a class="app-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:pricing' %}">Pricing</a>
+        {% endif %}
         {% if show_admin_link %}
           <a class="app-link" href="/control-room/">Admin</a>
         {% endif %}
@@ -37,7 +39,13 @@
 
       {% if user.is_authenticated %}
         <a class="button-primary hidden sm:inline-flex" href="{% url 'core:planner_start' %}">Start a plan</a>
-        <a class="avatar-chip hidden sm:inline-flex" href="{% url 'accounts:settings' %}">{{ user.username|default:"DF"|slice:":2"|upper }}</a>
+        <a class="avatar-chip hidden sm:inline-flex overflow-hidden" href="{% url 'accounts:settings' %}">
+          {% if header_avatar_url %}
+            <img src="{{ header_avatar_url }}" alt="{{ user.username }} profile photo" class="h-full w-full object-cover">
+          {% else %}
+            {{ user.username|default:"DF"|slice:":2"|upper }}
+          {% endif %}
+        </a>
       {% else %}
         <a class="button-secondary hidden sm:inline-flex" href="{% url 'account_signup' %}">Create free account</a>
       {% endif %}
@@ -51,7 +59,9 @@
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'plans:dashboard' %}" @click="mobileNavOpen = false">Dashboard</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start plan</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'accounts:settings' %}" @click="mobileNavOpen = false">Settings</a>
-          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
+          {% if show_pricing_link %}
+            <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
+          {% endif %}
           {% if show_admin_link %}
             <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="/control-room/" @click="mobileNavOpen = false">Admin</a>
           {% endif %}

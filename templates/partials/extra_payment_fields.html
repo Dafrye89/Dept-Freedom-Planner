@@ -1,0 +1,19 @@
+{% with current_preset=form.extra_payment_preset.value|default:form.extra_payment_preset.initial %}
+  <div class="field-grid" x-data="{ preset: '{{ current_preset|default_if_none:'' }}' }">
+    <div class="field">
+      <label for="{{ form.extra_payment_preset.id_for_label }}">Extra monthly payment</label>
+      <select name="{{ form.extra_payment_preset.html_name }}" id="{{ form.extra_payment_preset.id_for_label }}" x-model="preset">
+        {% for value, label in form.fields.extra_payment_preset.choices %}
+          <option value="{{ value }}" {% if current_preset == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {{ form.extra_payment_preset.errors }}
+      <div class="hint">Choose a preset amount or pick Custom and enter a monthly amount yourself.</div>
+    </div>
+    <div class="field" x-show="preset === 'custom'" x-cloak>
+      <label for="{{ form.extra_monthly_payment.id_for_label }}">Custom extra monthly payment</label>
+      {{ form.extra_monthly_payment }}
+      {{ form.extra_monthly_payment.errors }}
+    </div>
+  </div>
+{% endwith %}

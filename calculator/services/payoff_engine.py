@@ -28,6 +28,7 @@ class DebtState:
     id: str
     name: str
     lender: str
+    debt_type: str
     balance: Decimal
     apr: Decimal
     minimum_payment: Decimal
@@ -48,6 +49,7 @@ def normalize_debt(raw: dict, index: int) -> DebtState:
         id=str(raw.get("id") or f"debt-{index + 1}"),
         name=(raw.get("name") or f"Debt {index + 1}").strip(),
         lender=(raw.get("lender") or raw.get("lender_name") or "").strip(),
+        debt_type=(raw.get("debt_type") or raw.get("debtType") or "other_debt").strip(),
         balance=balance,
         apr=apr,
         minimum_payment=minimum_payment,
@@ -66,6 +68,19 @@ def strategy_label(strategy: str) -> str:
     }.get(strategy, "Snowball")
 
 
+def debt_type_label(debt_type: str) -> str:
+    return {
+        "credit_card": "Credit Card",
+        "vehicle": "Vehicle",
+        "mortgage": "Mortgage",
+        "bank_loan": "Bank Loan",
+        "payday_loan": "Payday Loan",
+        "personal_loan": "Personal Loan",
+        "student_loan": "Student Loan",
+        "other_debt": "Other Debt",
+    }.get(debt_type, "Other Debt")
+
+
 def sort_debts(active_debts: list[DebtState], strategy: str) -> list[DebtState]:
     if strategy == "avalanche":
         return sorted(active_debts, key=lambda debt: (-debt.apr, debt.balance, debt.name))
@@ -74,10 +89,41 @@ def sort_debts(active_debts: list[DebtState], strategy: str) -> list[DebtState]:
     return sorted(active_debts, key=lambda debt: (debt.balance, -debt.apr, debt.name))
 
 
+def build_current_snapshot(debt_states: list[DebtState], *, month_index: int, month_date: date, total_debt: Decimal) -> dict:
+    remaining_balance = round_currency(sum(debt.current_balance for debt in debt_states))
+    total_paid_off = round_currency(total_debt - remaining_balance)
+    debts_cleared = sum(1 for debt in debt_states if debt.current_balance <= EPSILON)
+    total_debts = len(debt_states)
+    snapshot_debts = [
+        {
+            "id": debt.id,
+            "name": debt.name,
+            "debt_type": debt.debt_type,
+            "debt_type_label": debt_type_label(debt.debt_type),
+            "remaining_balance": round_currency(max(debt.current_balance, Decimal("0"))),
+            "paid_off": debt.current_balance <= EPSILON,
+        }
+        for debt in debt_states
+    ]
+    return {
+        "month_index": month_index,
+        "month_label": month_label(month_date),
+        "remaining_balance": remaining_balance,
+        "total_paid_off": total_paid_off,
+        "debts_cleared": debts_cleared,
+        "total_debts": total_debts,
+        "progress_percent": round_currency((total_paid_off / total_debt) * Decimal("100")) if total_debt > 0 else Decimal("100.00"),
+        "paid_off_debt_ids": [debt["id"] for debt in snapshot_debts if debt["paid_off"]],
+        "debts": snapshot_debts,
+    }
+
+
 def solve_payoff_plan(
     *,
     debts: list[dict],
     extra_payment: Decimal | float | int = 0,
+    monthly_extra_payments: dict[int, Decimal | float | int] | None = None,
+    actual_snapshot_month_index: int = 0,
     strategy: str = "snowball",
     start_date: date | None = None,
     title: str = "Debt Freedom Plan",
@@ -88,6 +134,11 @@ def solve_payoff_plan(
         if normalized_debt.balance > 0 and normalized_debt.minimum_payment > 0:
             normalized.append(normalized_debt)
     extra = round_currency(max(Decimal(str(extra_payment)), Decimal("0")))
+    monthly_override_map = {
+        int(month_index): round_currency(max(Decimal(str(value)), Decimal("0")))
+        for month_index, value in (monthly_extra_payments or {}).items()
+        if int(month_index) > 0
+    }
     simulation_start = date((start_date or date.today()).year, (start_date or date.today()).month, 1)
 
     if not normalized:
@@ -112,18 +163,26 @@ def solve_payoff_plan(
             "debts": [],
             "monthly_totals": [],
             "schedule": [],
+            "current_snapshot": build_current_snapshot([], month_index=0, month_date=simulation_start, total_debt=Decimal("0.00")),
             "status": "empty",
         }
 
     debt_state = normalized
     base_order = sort_debts(debt_state, strategy)
     focus_rank_map = {debt.id: rank for rank, debt in enumerate(base_order, start=1)}
+    total_debt = round_currency(sum(debt.balance for debt in normalized))
     schedule: list[dict] = []
     payoff_order: list[dict] = []
     monthly_totals: list[dict] = []
     total_interest = Decimal("0.00")
     total_paid = Decimal("0.00")
     stalled_months = 0
+    current_snapshot = build_current_snapshot(
+        debt_state,
+        month_index=0,
+        month_date=simulation_start,
+        total_debt=total_debt,
+    )
 
     for month_index in range(MAX_MONTHS):
         active = [debt for debt in debt_state if debt.current_balance > EPSILON]
@@ -133,7 +192,8 @@ def solve_payoff_plan(
         current_order = sort_debts(active, strategy)
         month_date = add_months(simulation_start, month_index)
         month_rows: list[dict] = []
-        extra_remaining = extra
+        applied_extra_payment = monthly_override_map.get(month_index + 1, extra)
+        extra_remaining = applied_extra_payment
         month_interest = Decimal("0.00")
         month_paid = Decimal("0.00")
         total_starting_balance = round_currency(sum(debt.current_balance for debt in active))
@@ -158,6 +218,8 @@ def solve_payoff_plan(
                     "debt_id": debt.id,
                     "debt_name": debt.name,
                     "strategy": strategy,
+                    "debt_type": debt.debt_type,
+                    "debt_type_label": debt_type_label(debt.debt_type),
                     "starting_balance": starting_balance,
                     "interest": interest,
                     "payment": minimum_payment,
@@ -209,9 +271,17 @@ def solve_payoff_plan(
                 "total_ending_balance": total_ending_balance,
                 "interest": month_interest,
                 "payment": month_paid,
+                "extra_payment": applied_extra_payment,
             }
         )
         schedule.extend(month_rows)
+        if actual_snapshot_month_index == month_index + 1:
+            current_snapshot = build_current_snapshot(
+                debt_state,
+                month_index=month_index + 1,
+                month_date=month_date,
+                total_debt=total_debt,
+            )
 
         if total_ending_balance >= total_starting_balance - EPSILON:
             stalled_months += 1
@@ -224,7 +294,7 @@ def solve_payoff_plan(
                 "strategy": strategy,
                 "strategy_label": strategy_label(strategy),
                 "summary": {
-                    "total_debt": round_currency(sum(debt.balance for debt in normalized)),
+                    "total_debt": total_debt,
                     "months_to_payoff": month_index + 1,
                     "total_interest": total_interest,
                     "total_paid": total_paid,
@@ -240,6 +310,7 @@ def solve_payoff_plan(
                 "debts": debt_state,
                 "monthly_totals": monthly_totals,
                 "schedule": schedule,
+                "current_snapshot": current_snapshot,
                 "status": "stalled",
             }
 
@@ -251,7 +322,7 @@ def solve_payoff_plan(
         "strategy": strategy,
         "strategy_label": strategy_label(strategy),
         "summary": {
-            "total_debt": round_currency(sum(debt.balance for debt in normalized)),
+            "total_debt": total_debt,
             "months_to_payoff": months_to_payoff,
             "total_interest": total_interest,
             "total_paid": total_paid,
@@ -269,6 +340,8 @@ def solve_payoff_plan(
                 "id": debt.id,
                 "name": debt.name,
                 "lender": debt.lender,
+                "debt_type": debt.debt_type,
+                "debt_type_label": debt_type_label(debt.debt_type),
                 "balance": debt.balance,
                 "apr": debt.apr,
                 "minimum_payment": debt.minimum_payment,
@@ -293,6 +366,7 @@ def solve_payoff_plan(
         ],
         "monthly_totals": monthly_totals,
         "schedule": schedule,
+        "current_snapshot": current_snapshot,
         "status": "complete",
     }
 

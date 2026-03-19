@@ -43,10 +43,9 @@
           <label for="{{ form.strategy_type.id_for_label }}">Strategy</label>
           {{ form.strategy_type }}
         </div>
-        <div class="field">
-          <label for="{{ form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
-          {{ form.extra_monthly_payment }}
-        </div>
+      </div>
+      <div style="margin-top:20px;">
+        {% include "partials/extra_payment_fields.html" with form=form %}
       </div>
 
       <div class="panel-header" style="margin-top:24px;">

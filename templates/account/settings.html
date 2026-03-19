@@ -1,4 +1,5 @@
 {% extends "base_app.html" %}
+{% load static formatting %}
 
 {% block title %}Account Settings{% endblock %}
 
@@ -11,11 +12,21 @@
     </div>
   </section>
 
-  <form method="post" class="stack">
+  <form method="post" enctype="multipart/form-data" class="stack">
     {% csrf_token %}
     <section class="page-grid">
       <div class="panel">
           <h3 class="text-2xl font-bold">User details</h3>
+          <div class="card-actions mt-5">
+            <article class="summary-card">
+              <span>Profile picture</span>
+              {% if header_avatar_url %}
+                <img src="{{ header_avatar_url }}" alt="{{ request.user.username }} profile photo" class="mx-auto mt-4 h-24 w-24 rounded-sm border-2 border-slate-200 object-cover">
+              {% else %}
+                <strong class="mt-4">{{ request.user.username|slice:":2"|upper }}</strong>
+              {% endif %}
+            </article>
+          </div>
           <div class="stack mt-5">
             {% for field in user_form %}
               <div class="field">
@@ -59,7 +70,13 @@
       <div>
         <span class="eyebrow">Billing</span>
         <h3>Subscription access</h3>
-        <p>Upgrade to Pro for unlimited plans, unlimited comparisons, and PDF export.</p>
+        <p>
+          {% if capabilities.is_paid %}
+            Your account already has full Pro access.
+          {% else %}
+            Upgrade to Pro for unlimited plans, unlimited comparisons, and PDF export.
+          {% endif %}
+        </p>
       </div>
     </div>
     <div class="page-grid">
@@ -107,6 +124,56 @@
         </form>
       {% else %}
         <a class="button button-secondary" href="{% url 'billing:pricing' %}">View pricing</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="page-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Progress</span>
+          <h3>How far you have come</h3>
+        </div>
+      </div>
+      <div class="summary-grid xl:!grid-cols-2">
+        <article class="summary-card">
+          <span>Progress to debt-free</span>
+          <strong>{{ profile_progress.progress_percent }}%</strong>
+        </article>
+        <article class="summary-card">
+          <span>Debts cleared</span>
+          <strong>{{ profile_progress.debts_cleared }}/{{ profile_progress.total_debts }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Total paid off</span>
+          <strong>{{ profile_progress.total_paid_off|currency }}</strong>
+        </article>
+        <article class="summary-card">
+          <span>Remaining balance</span>
+          <strong>{{ profile_progress.remaining_balance|currency }}</strong>
+        </article>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Badges</span>
+          <h3>Rewards you have earned</h3>
+        </div>
+      </div>
+      {% if badge_awards %}
+        <div class="card-actions">
+          {% for badge in badge_awards %}
+            <article class="summary-card">
+              <img src="{% static badge.badge_image %}" alt="{{ badge.badge_name }}" class="mx-auto h-20 w-20 border-2 border-slate-200 bg-slate-50 p-2">
+              <span>{{ badge.badge_name }}</span>
+              <strong>{{ badge.debt_item.name }}</strong>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="muted">No badges unlocked yet. They will appear here as you pay off saved debts and complete check-ins.</div>
       {% endif %}
     </div>
   </section>

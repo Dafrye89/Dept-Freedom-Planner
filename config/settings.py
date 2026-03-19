@@ -217,7 +217,8 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = AZURE_SQLITE_DIR / "media" if RUNNING_ON_AZURE else BASE_DIR / "media"
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 STORAGES = {

@@ -21,6 +21,7 @@ SAMPLE_DRAFT = {
         {
             "name": "Freedom Card",
             "lender_name": "Liberty Bank",
+            "debt_type": "credit_card",
             "balance": "2480.00",
             "apr": "24.99",
             "minimum_payment": "95.00",
@@ -31,6 +32,7 @@ SAMPLE_DRAFT = {
         {
             "name": "General Store Card",
             "lender_name": "General Market",
+            "debt_type": "credit_card",
             "balance": "3100.00",
             "apr": "19.50",
             "minimum_payment": "90.00",
@@ -41,6 +43,7 @@ SAMPLE_DRAFT = {
         {
             "name": "Truck Loan",
             "lender_name": "Roadway Credit",
+            "debt_type": "vehicle",
             "balance": "11700.00",
             "apr": "7.20",
             "minimum_payment": "315.00",
@@ -50,6 +53,16 @@ SAMPLE_DRAFT = {
         },
     ],
 }
+
+
+def _posted_extra_payment(request, prefix: str = "strategy") -> str:
+    preset = request.POST.get(f"{prefix}-extra_payment_preset", "").strip()
+    custom_amount = request.POST.get(f"{prefix}-extra_monthly_payment", "").strip()
+    if preset and preset != "custom":
+        return preset
+    if custom_amount:
+        return custom_amount
+    return "0.00"
 
 
 def _require_planner_account(request):
@@ -116,7 +129,7 @@ def planner_debts(request):
         details_form = DraftPlanDetailsForm(request.POST, prefix="details")
         debt_formset = DebtDraftFormSet(request.POST, prefix="debts")
         for form in debt_formset.forms:
-            field_names = ["name", "balance", "apr", "minimum_payment", "lender_name", "due_day", "notes", "custom_order"]
+            field_names = ["name", "balance", "apr", "minimum_payment", "lender_name", "debt_type", "due_day", "notes", "custom_order"]
             has_any_value = any(request.POST.get(form.add_prefix(field), "").strip() for field in field_names)
             if not has_any_value:
                 form.empty_permitted = True
@@ -129,6 +142,7 @@ def planner_debts(request):
                     {
                         "name": form.cleaned_data["name"],
                         "lender_name": form.cleaned_data.get("lender_name", ""),
+                        "debt_type": form.cleaned_data["debt_type"],
                         "balance": str(form.cleaned_data["balance"]),
                         "apr": str(form.cleaned_data["apr"]),
                         "minimum_payment": str(form.cleaned_data["minimum_payment"]),
@@ -177,6 +191,7 @@ def planner_strategy(request):
         initial={
             "strategy_type": draft.get("strategy_type") or "snowball",
             "extra_monthly_payment": draft.get("extra_monthly_payment") or "0.00",
+            "extra_payment_preset": "",
         },
     )
 
@@ -201,10 +216,7 @@ def planner_strategy(request):
 
         preview_draft = draft | {
             "strategy_type": request.POST.get("strategy-strategy_type", draft.get("strategy_type")),
-            "extra_monthly_payment": request.POST.get(
-                "strategy-extra_monthly_payment",
-                draft.get("extra_monthly_payment"),
-            ),
+            "extra_monthly_payment": _posted_extra_payment(request),
         }
         preview_plan, preview_comparisons = calculate_from_draft(preview_draft)
 
@@ -227,10 +239,7 @@ def strategy_preview(request):
     draft = get_draft(request)
     preview_draft = draft | {
         "strategy_type": request.POST.get("strategy-strategy_type", draft.get("strategy_type")),
-        "extra_monthly_payment": request.POST.get(
-            "strategy-extra_monthly_payment",
-            draft.get("extra_monthly_payment"),
-        ),
+        "extra_monthly_payment": _posted_extra_payment(request),
     }
     preview_plan, preview_comparisons = calculate_from_draft(preview_draft)
     return render(

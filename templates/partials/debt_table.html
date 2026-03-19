@@ -17,6 +17,9 @@
           <td>
             <strong>{{ debt.name }}</strong>
             <div class="muted">{{ debt.lender|default:"No lender listed" }}</div>
+            {% if debt.debt_type_label %}
+              <div class="muted">{{ debt.debt_type_label }}</div>
+            {% endif %}
           </td>
           <td>{{ debt.balance|currency }}</td>
           <td>{{ debt.apr|percent }}</td>

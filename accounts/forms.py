@@ -12,5 +12,4 @@ class UserSettingsForm(forms.ModelForm):
 class ProfileSettingsForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ["display_name", "timezone", "marketing_opt_in"]
-
+        fields = ["display_name", "avatar", "timezone", "marketing_opt_in"]

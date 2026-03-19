@@ -41,6 +41,7 @@ if not user.debt_plans.filter(is_archived=False).exists():
                 {
                     "name": "Freedom Card",
                     "lender_name": "Liberty Bank",
+                    "debt_type": "credit_card",
                     "balance": "2400.00",
                     "apr": "21.00",
                     "minimum_payment": "90.00",
@@ -51,6 +52,7 @@ if not user.debt_plans.filter(is_archived=False).exists():
                 {
                     "name": "Truck Note",
                     "lender_name": "Patriot Credit",
+                    "debt_type": "vehicle",
                     "balance": "7800.00",
                     "apr": "6.90",
                     "minimum_payment": "295.00",
@@ -65,6 +67,10 @@ print("paid smoke user ready")
 `.trim();
 
 const bootstrap = () => {
+  execFileSync(pythonExec, ["manage.py", "migrate", "--noinput"], {
+    cwd: projectRoot,
+    stdio: "inherit",
+  });
   execFileSync(pythonExec, ["manage.py", "bootstrap_superuser"], {
     cwd: projectRoot,
     stdio: "inherit",
@@ -107,6 +113,7 @@ const fillPlanner = async (page) => {
   await page.fill('input[name="details-title"]', "Playwright Guided Plan");
   await page.fill('input[name="details-household_name"]', "Patriotic Household");
   await page.fill('input[name="debts-0-name"]', "Visa Card");
+  await page.selectOption('select[name="debts-0-debt_type"]', "credit_card");
   await page.fill('input[name="debts-0-balance"]', "4200");
   await page.fill('input[name="debts-0-apr"]', "22.5");
   await page.fill('input[name="debts-0-minimum_payment"]', "120");
@@ -115,11 +122,13 @@ const fillPlanner = async (page) => {
   await page.getByRole("button", { name: "Add another debt" }).click();
   await page.locator('input[name="debts-2-name"]').waitFor();
   await page.fill('input[name="debts-1-name"]', "Truck Loan");
+  await page.selectOption('select[name="debts-1-debt_type"]', "vehicle");
   await page.fill('input[name="debts-1-balance"]', "9800");
   await page.fill('input[name="debts-1-apr"]', "6.9");
   await page.fill('input[name="debts-1-minimum_payment"]', "315");
   await page.fill('input[name="debts-1-custom_order"]', "3");
   await page.fill('input[name="debts-2-name"]', "Store Card");
+  await page.selectOption('select[name="debts-2-debt_type"]', "credit_card");
   await page.fill('input[name="debts-2-balance"]', "1800");
   await page.fill('input[name="debts-2-apr"]', "18.4");
   await page.fill('input[name="debts-2-minimum_payment"]', "75");
@@ -130,6 +139,7 @@ const fillPlanner = async (page) => {
     page.getByRole("button", { name: "Continue to strategy" }).click(),
   ]);
   await page.locator('input[value="custom"]').check();
+  await page.selectOption('select[name="strategy-extra_payment_preset"]', "custom");
   await page.fill('input[name="strategy-extra_monthly_payment"]', "350");
   await Promise.all([
     page.waitForURL("**/planner/results/"),

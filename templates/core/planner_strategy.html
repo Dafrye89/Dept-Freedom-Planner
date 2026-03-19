@@ -60,11 +60,9 @@
           {% endfor %}
         </div>
 
-        <div class="field" style="margin-top:20px;">
-          <label for="{{ strategy_form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
-          {{ strategy_form.extra_monthly_payment }}
+        <div style="margin-top:20px;">
+          {% include "partials/extra_payment_fields.html" with form=strategy_form %}
           <div class="muted">This is the amount you can pay above all minimum payments combined.</div>
-          {{ strategy_form.extra_monthly_payment.errors }}
         </div>
 
         <div class="button-row" style="margin-top:20px;">

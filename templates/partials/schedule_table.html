@@ -38,7 +38,7 @@
   </div>
 {% endif %}
 {% if capabilities.can_view_full_schedule %}
-  <div class="muted mt-3">Page {{ schedule_page_obj.number }} of {{ schedule_page_obj.paginator.num_pages }}. Paid access lets you page through every month of the plan.</div>
+  <div class="muted mt-3">Page {{ schedule_page_obj.number }} of {{ schedule_page_obj.paginator.num_pages }}.</div>
 {% else %}
   <div class="muted mt-3">Free accounts can view the first 18 schedule rows. Use the navigation controls above to upgrade for the full month-by-month schedule.</div>
 {% endif %}
