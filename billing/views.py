@@ -16,6 +16,7 @@ from billing.services import (
     get_publishable_key,
     is_stripe_configured,
     process_stripe_event,
+    reconcile_user_paid_access,
     sync_checkout_session_for_user,
 )
 
@@ -67,6 +68,29 @@ def portal(request):
         messages.error(request, "Stripe could not open the billing portal right now.")
         return redirect("accounts:settings")
     return redirect(portal_url)
+
+
+@login_required
+@require_POST
+def refresh_access(request):
+    capabilities = get_capabilities(request.user)
+    if capabilities.is_override:
+        messages.info(request, "Founder access already includes every paid feature.")
+        return redirect("accounts:settings")
+    if not is_stripe_configured():
+        messages.error(request, "Stripe is not configured yet.")
+        return redirect("accounts:settings")
+    try:
+        access = reconcile_user_paid_access(request.user)
+    except StripeError:
+        messages.error(request, "We could not confirm your billing status with Stripe right now.")
+        return redirect("accounts:settings")
+
+    if access.tier == access.Tier.PAID:
+        messages.success(request, "Your Pro access has been refreshed.")
+    else:
+        messages.warning(request, "We checked Stripe but did not find an active Pro subscription for this account.")
+    return redirect("accounts:settings")
 
 
 @login_required

@@ -1,3 +1,4 @@
+from io import StringIO
 from unittest.mock import patch
 
 from django.conf import settings
@@ -228,6 +229,38 @@ class IntegrationTests(TestCase):
         self.assertEqual(response["Location"], "https://billing.stripe.com/session/test_123")
         mocked_portal.assert_called_once_with(user=user)
 
+    @patch("billing.views.reconcile_user_paid_access")
+    def test_refresh_access_promotes_paid_user_from_stripe(self, mocked_reconcile):
+        user = self.create_user("refreshuser", "refresh@example.com")
+        self.client.force_login(user)
+
+        def reconcile_and_activate(target_user):
+            access = target_user.subscription_access
+            access.sync_stripe_subscription(
+                customer_id="cus_refresh_123",
+                subscription_id="sub_refresh_123",
+                price_id="price_test_123",
+                status="active",
+                current_period_end=1775000000,
+                notes="manual refresh",
+            )
+            return access
+
+        mocked_reconcile.side_effect = reconcile_and_activate
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+        ):
+            response = self.client.post(reverse("billing:refresh_access"))
+
+        user.refresh_from_db()
+        self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
+        self.assertEqual(user.subscription_access.tier, user.subscription_access.Tier.PAID)
+        messages = list(response.wsgi_request._messages)
+        self.assertTrue(any("Your Pro access has been refreshed." in str(message) for message in messages))
+        mocked_reconcile.assert_called_once_with(user)
+
     @patch(
         "billing.services.stripe.Subscription.retrieve",
         return_value={
@@ -295,6 +328,36 @@ class IntegrationTests(TestCase):
         messages = list(response.wsgi_request._messages)
         self.assertTrue(any("still confirming your Pro access" in str(message) for message in messages))
         mocked_session_retrieve.assert_called_once_with("cs_wrong_user_123")
+
+    @patch("billing.management.commands.reconcile_stripe_access.reconcile_user_paid_access")
+    def test_reconcile_stripe_access_command_updates_single_user(self, mocked_reconcile):
+        user = self.create_user("commanduser", "command@example.com")
+
+        def reconcile_and_activate(target_user):
+            access = target_user.subscription_access
+            access.sync_stripe_subscription(
+                customer_id="cus_command_123",
+                subscription_id="sub_command_123",
+                price_id="price_test_123",
+                status="active",
+                current_period_end=1775000000,
+                notes="command sync",
+            )
+            return access
+
+        mocked_reconcile.side_effect = reconcile_and_activate
+        out = StringIO()
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+        ):
+            call_command("reconcile_stripe_access", "--username", user.username, stdout=out)
+
+        user.refresh_from_db()
+        self.assertEqual(user.subscription_access.tier, user.subscription_access.Tier.PAID)
+        self.assertIn("User 'commanduser' reconciled. Tier: paid. Stripe status: active.", out.getvalue())
+        mocked_reconcile.assert_called_once()
 
     @patch(
         "billing.services.stripe.Subscription.retrieve",

@@ -88,11 +88,19 @@
       {% if capabilities.is_override %}
         <a class="button button-secondary" href="{% url 'plans:dashboard' %}">Return to dashboard</a>
       {% elif stripe_enabled and capabilities.is_paid %}
+        <form method="post" action="{% url 'billing:refresh_access' %}">
+          {% csrf_token %}
+          <button class="button button-secondary" type="submit">Refresh billing status</button>
+        </form>
         <form method="post" action="{% url 'billing:portal' %}">
           {% csrf_token %}
           <button class="button button-primary" type="submit">Manage billing</button>
         </form>
       {% elif stripe_enabled %}
+        <form method="post" action="{% url 'billing:refresh_access' %}">
+          {% csrf_token %}
+          <button class="button button-secondary" type="submit">Refresh billing status</button>
+        </form>
         <form method="post" action="{% url 'billing:checkout' %}">
           {% csrf_token %}
           <button class="button button-primary" type="submit">Upgrade to Pro</button>

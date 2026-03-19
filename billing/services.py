@@ -34,6 +34,72 @@ def _configure_stripe():
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def _subscription_price_ids(subscription: dict[str, Any]) -> set[str]:
+    items = ((subscription.get("items") or {}).get("data") or [])
+    return {((item.get("price") or {}).get("id") or "") for item in items if item}
+
+
+def _subscription_product_ids(subscription: dict[str, Any]) -> set[str]:
+    items = ((subscription.get("items") or {}).get("data") or [])
+    return {((item.get("price") or {}).get("product") or "") for item in items if item}
+
+
+def _subscription_matches_pro_plan(subscription: dict[str, Any]) -> bool:
+    price_ids = _subscription_price_ids(subscription)
+    product_ids = _subscription_product_ids(subscription)
+    if settings.STRIPE_PRO_PRICE_ID and settings.STRIPE_PRO_PRICE_ID in price_ids:
+        return True
+    if settings.STRIPE_PRO_PRODUCT_ID and settings.STRIPE_PRO_PRODUCT_ID in product_ids:
+        return True
+    return False
+
+
+def _extract_customer_details(customer: Any) -> dict[str, Any]:
+    if isinstance(customer, dict):
+        return customer
+    if not customer:
+        return {}
+    return stripe.Customer.retrieve(customer)
+
+
+def _find_user_from_customer(customer: dict[str, Any]) -> CustomUser | None:
+    metadata = customer.get("metadata") or {}
+    user_id = metadata.get("user_id")
+    if user_id:
+        user = CustomUser.objects.filter(pk=user_id).first()
+        if user:
+            return user
+    email = (customer.get("email") or "").strip().lower()
+    if email:
+        return CustomUser.objects.filter(email=email).first()
+    return None
+
+
+def _find_access_for_subscription_or_customer(subscription: dict[str, Any]) -> SubscriptionAccess | None:
+    access = find_access_for_subscription(subscription)
+    if access:
+        return access
+    customer = _extract_customer_details(subscription.get("customer"))
+    user = _find_user_from_customer(customer)
+    if not user:
+        return None
+    access = user.subscription_access
+    customer_id = customer.get("id", "")
+    if customer_id and access.stripe_customer_id != customer_id:
+        access.stripe_customer_id = customer_id
+        access.save(update_fields=["stripe_customer_id", "updated_at"])
+    return access
+
+
+def _pick_relevant_subscription(subscriptions: list[dict[str, Any]]) -> dict[str, Any] | None:
+    matching = [subscription for subscription in subscriptions if _subscription_matches_pro_plan(subscription)]
+    if not matching:
+        return None
+    active = [subscription for subscription in matching if subscription.get("status") in SubscriptionAccess.ACTIVE_STRIPE_STATUSES]
+    pool = active or matching
+    return max(pool, key=lambda subscription: int(subscription.get("created") or 0))
+
+
 def ensure_stripe_customer(user: CustomUser) -> str:
     _configure_stripe()
     access = user.subscription_access
@@ -98,7 +164,7 @@ def construct_stripe_event(*, payload: bytes, signature: str):
 
 def sync_subscription_from_stripe_data(subscription: dict[str, Any], *, access: SubscriptionAccess | None = None):
     if access is None:
-        access = find_access_for_subscription(subscription)
+        access = _find_access_for_subscription_or_customer(subscription)
     if access is None:
         return None
 
@@ -187,3 +253,52 @@ def process_stripe_event(event: dict[str, Any]) -> bool:
         payload=event,
     )
     return True
+
+
+def reconcile_user_paid_access(user: CustomUser):
+    _configure_stripe()
+    access = user.subscription_access
+
+    if access.stripe_subscription_id:
+        subscription = stripe.Subscription.retrieve(access.stripe_subscription_id)
+        if _subscription_matches_pro_plan(subscription):
+            return sync_subscription_from_stripe_data(subscription, access=access)
+
+    customer_ids: list[str] = []
+    if access.stripe_customer_id:
+        customer_ids.append(access.stripe_customer_id)
+    else:
+        customers = stripe.Customer.list(email=user.email, limit=10)
+        for customer in customers.get("data", []):
+            matched_user = _find_user_from_customer(customer)
+            if matched_user and matched_user.pk == user.pk:
+                customer_ids.append(customer.get("id", ""))
+
+    for customer_id in dict.fromkeys(customer_ids):
+        if not customer_id:
+            continue
+        if access.stripe_customer_id != customer_id:
+            access.stripe_customer_id = customer_id
+            access.save(update_fields=["stripe_customer_id", "updated_at"])
+        subscriptions = stripe.Subscription.list(customer=customer_id, status="all", limit=20)
+        relevant = _pick_relevant_subscription(subscriptions.get("data", []))
+        if relevant:
+            return sync_subscription_from_stripe_data(relevant, access=access)
+
+    return access
+
+
+def reconcile_all_paid_access():
+    _configure_stripe()
+    synced = 0
+    unmatched = 0
+    for subscription in stripe.Subscription.list(status="all", limit=100).auto_paging_iter():
+        if not _subscription_matches_pro_plan(subscription):
+            continue
+        access = _find_access_for_subscription_or_customer(subscription)
+        if access is None:
+            unmatched += 1
+            continue
+        sync_subscription_from_stripe_data(subscription, access=access)
+        synced += 1
+    return {"synced": synced, "unmatched": unmatched}
