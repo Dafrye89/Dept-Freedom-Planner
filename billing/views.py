@@ -16,6 +16,7 @@ from billing.services import (
     get_publishable_key,
     is_stripe_configured,
     process_stripe_event,
+    sync_checkout_session_for_user,
 )
 
 
@@ -70,7 +71,18 @@ def portal(request):
 
 @login_required
 def checkout_success(request):
-    messages.success(request, "Stripe checkout completed. Your paid access will update as soon as Stripe confirms the subscription.")
+    session_id = request.GET.get("session_id", "").strip()
+    if session_id and is_stripe_configured():
+        try:
+            access = sync_checkout_session_for_user(user=request.user, session_id=session_id)
+        except StripeError:
+            access = None
+        if access and access.tier == access.Tier.PAID:
+            messages.success(request, "Your Pro access is active now.")
+        else:
+            messages.info(request, "Stripe checkout completed. We are still confirming your Pro access.")
+    else:
+        messages.success(request, "Stripe checkout completed.")
     return redirect("plans:dashboard")
 
 

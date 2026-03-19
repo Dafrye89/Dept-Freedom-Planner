@@ -66,6 +66,16 @@ def create_checkout_session(*, user: CustomUser) -> str:
     return session["url"]
 
 
+def sync_checkout_session_for_user(*, user: CustomUser, session_id: str):
+    _configure_stripe()
+    session = stripe.checkout.Session.retrieve(session_id)
+    expected_user_id = str(user.pk)
+    session_user_id = str((session.get("metadata") or {}).get("user_id") or session.get("client_reference_id") or "")
+    if session_user_id != expected_user_id:
+        return None
+    return handle_checkout_session_completed(session)
+
+
 def create_portal_session(*, user: CustomUser) -> str:
     _configure_stripe()
     access = user.subscription_access

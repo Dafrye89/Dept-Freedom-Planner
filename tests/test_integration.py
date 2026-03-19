@@ -231,6 +231,74 @@ class IntegrationTests(TestCase):
     @patch(
         "billing.services.stripe.Subscription.retrieve",
         return_value={
+            "id": "sub_success_123",
+            "customer": "cus_success_123",
+            "status": "active",
+            "cancel_at_period_end": False,
+            "current_period_end": 1775000000,
+            "items": {"data": [{"price": {"id": "price_test_123"}}]},
+        },
+    )
+    @patch(
+        "billing.services.stripe.checkout.Session.retrieve",
+        return_value={
+            "id": "cs_success_123",
+            "customer": "cus_success_123",
+            "subscription": "sub_success_123",
+            "client_reference_id": "1",
+            "metadata": {"user_id": "1"},
+        },
+    )
+    def test_checkout_success_activates_paid_access_immediately(self, mocked_session_retrieve, mocked_subscription_retrieve):
+        user = self.create_user("successuser", "success@example.com")
+        self.client.force_login(user)
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+        ):
+            mocked_session_retrieve.return_value["client_reference_id"] = str(user.pk)
+            mocked_session_retrieve.return_value["metadata"]["user_id"] = str(user.pk)
+            response = self.client.get(reverse("billing:checkout_success"), {"session_id": "cs_success_123"})
+
+        user.refresh_from_db()
+        self.assertRedirects(response, reverse("plans:dashboard"), fetch_redirect_response=False)
+        self.assertEqual(user.subscription_access.tier, user.subscription_access.Tier.PAID)
+        messages = list(response.wsgi_request._messages)
+        self.assertTrue(any("Your Pro access is active now." in str(message) for message in messages))
+        mocked_session_retrieve.assert_called_once_with("cs_success_123")
+        mocked_subscription_retrieve.assert_called_once_with("sub_success_123")
+
+    @patch(
+        "billing.services.stripe.checkout.Session.retrieve",
+        return_value={
+            "id": "cs_wrong_user_123",
+            "customer": "cus_wrong_123",
+            "subscription": "sub_wrong_123",
+            "client_reference_id": "9999",
+            "metadata": {"user_id": "9999"},
+        },
+    )
+    def test_checkout_success_does_not_sync_other_users_session(self, mocked_session_retrieve):
+        user = self.create_user("wrongsession", "wrongsession@example.com")
+        self.client.force_login(user)
+
+        with self.settings(
+            STRIPE_SECRET_KEY="sk_test_123",
+            STRIPE_PRO_PRICE_ID="price_test_123",
+        ):
+            response = self.client.get(reverse("billing:checkout_success"), {"session_id": "cs_wrong_user_123"})
+
+        user.refresh_from_db()
+        self.assertRedirects(response, reverse("plans:dashboard"), fetch_redirect_response=False)
+        self.assertEqual(user.subscription_access.tier, user.subscription_access.Tier.FREE)
+        messages = list(response.wsgi_request._messages)
+        self.assertTrue(any("still confirming your Pro access" in str(message) for message in messages))
+        mocked_session_retrieve.assert_called_once_with("cs_wrong_user_123")
+
+    @patch(
+        "billing.services.stripe.Subscription.retrieve",
+        return_value={
             "id": "sub_123",
             "customer": "cus_123",
             "status": "active",
