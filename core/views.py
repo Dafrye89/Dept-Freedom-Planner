@@ -1,10 +1,14 @@
+from urllib.parse import urlencode
+
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from accounts.services.access import can_create_plan
+from accounts.services.access import get_capabilities, plan_limit_message, upgrade_message
 from core.services.draft import calculate_from_draft, clear_draft, default_draft, get_draft, save_draft
 from core.services.events import log_event
+from core.services.schedule import get_requested_schedule_page, paginate_schedule
 from plans.forms import DebtDraftFormSet, DraftPlanDetailsForm, StrategySelectionForm
 
 
@@ -48,6 +52,21 @@ SAMPLE_DRAFT = {
 }
 
 
+def _require_planner_account(request):
+    if request.user.is_authenticated:
+        return None
+    messages.info(request, "Create an account to build and view your debt payoff plan.")
+    return redirect(f"{redirect('account_signup').url}?{urlencode({'next': request.get_full_path()})}")
+
+
+def _schedule_page_response(request, capabilities, plan):
+    requested_page = get_requested_schedule_page(request.GET.get("schedule_page"))
+    if requested_page > 1 and not capabilities.can_view_full_schedule:
+        messages.warning(request, upgrade_message("the full monthly schedule"))
+        return redirect("accounts:settings")
+    return paginate_schedule(plan["schedule"], requested_page)
+
+
 @require_GET
 def home(request):
     if request.user.is_authenticated:
@@ -59,12 +78,17 @@ def home(request):
         {
             "sample_plan": sample_plan,
             "sample_comparisons": sample_comparisons,
+            "stripe_pro_monthly_price": settings.STRIPE_PRO_MONTHLY_PRICE,
+            "stripe_trial_period_days": settings.STRIPE_TRIAL_PERIOD_DAYS,
         },
     )
 
 
 @require_http_methods(["GET", "POST"])
 def planner_start(request):
+    auth_response = _require_planner_account(request)
+    if auth_response:
+        return auth_response
     clear_draft(request)
     save_draft(request, default_draft())
     log_event("planner_started", user=request.user, session_key=request.session.session_key or "")
@@ -73,6 +97,9 @@ def planner_start(request):
 
 @require_http_methods(["GET", "POST"])
 def planner_debts(request):
+    auth_response = _require_planner_account(request)
+    if auth_response:
+        return auth_response
     draft = get_draft(request)
     initial_debts = draft.get("debts") or [{}]
 
@@ -137,6 +164,9 @@ def planner_debts(request):
 
 @require_http_methods(["GET", "POST"])
 def planner_strategy(request):
+    auth_response = _require_planner_account(request)
+    if auth_response:
+        return auth_response
     draft = get_draft(request)
     if not draft.get("debts"):
         messages.warning(request, "Start by entering your debts.")
@@ -191,6 +221,9 @@ def planner_strategy(request):
 
 @require_POST
 def strategy_preview(request):
+    auth_response = _require_planner_account(request)
+    if auth_response:
+        return auth_response
     draft = get_draft(request)
     preview_draft = draft | {
         "strategy_type": request.POST.get("strategy-strategy_type", draft.get("strategy_type")),
@@ -212,12 +245,19 @@ def strategy_preview(request):
 
 @require_GET
 def planner_results(request):
+    auth_response = _require_planner_account(request)
+    if auth_response:
+        return auth_response
     draft = get_draft(request)
     if not draft.get("debts"):
         messages.warning(request, "Start by entering your debts.")
         return redirect("core:planner_debts")
 
     plan, comparisons = calculate_from_draft(draft)
+    capabilities = get_capabilities(request.user)
+    schedule_page_obj = _schedule_page_response(request, capabilities, plan)
+    if not hasattr(schedule_page_obj, "paginator"):
+        return schedule_page_obj
     return render(
         request,
         "core/planner_results.html",
@@ -225,7 +265,11 @@ def planner_results(request):
             "draft": draft,
             "plan": plan,
             "comparisons": comparisons,
-            "can_save_current_plan": can_create_plan(request.user) if request.user.is_authenticated else False,
+            "capabilities": capabilities,
+            "schedule_page_obj": schedule_page_obj,
+            "plan_limit_message": plan_limit_message(request.user),
+            "stripe_pro_monthly_price": settings.STRIPE_PRO_MONTHLY_PRICE,
+            "stripe_trial_period_days": settings.STRIPE_TRIAL_PERIOD_DAYS,
         },
     )
 

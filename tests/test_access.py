@@ -4,7 +4,6 @@ from django.test import TestCase
 
 from accounts.models import CustomUser
 from accounts.services.access import can_create_plan, get_capabilities
-from plans.models import DebtPlan
 
 
 class AccessPolicyTests(TestCase):
@@ -29,11 +28,11 @@ class AccessPolicyTests(TestCase):
         self.assertTrue(capabilities.can_calculate)
         self.assertTrue(capabilities.can_compare)
         self.assertFalse(capabilities.can_save_plans)
+        self.assertFalse(capabilities.can_view_full_schedule)
         self.assertFalse(capabilities.can_see_admin_link)
 
-    def test_free_user_can_only_save_one_plan(self):
+    def test_free_user_cannot_save_plans(self):
         user = self.create_user("freeuser", "free@example.com")
-        DebtPlan.objects.create(user=user, title="One", strategy_type="snowball", extra_monthly_payment=0)
         self.assertFalse(can_create_plan(user))
 
     def test_paid_user_gets_premium_capabilities(self):
@@ -41,6 +40,7 @@ class AccessPolicyTests(TestCase):
         capabilities = get_capabilities(user)
         self.assertTrue(capabilities.can_export_pdf)
         self.assertTrue(capabilities.can_compare_unlimited)
+        self.assertTrue(capabilities.can_view_full_schedule)
         self.assertIsNone(capabilities.max_saved_plans)
 
     def test_founder_override_gets_admin_link_only_when_superuser(self):

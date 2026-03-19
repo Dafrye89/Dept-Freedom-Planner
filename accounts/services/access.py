@@ -16,6 +16,7 @@ class CapabilitySet:
     can_save_plans: bool
     can_print: bool
     can_export_pdf: bool
+    can_view_full_schedule: bool
     max_saved_plans: int | None
     can_see_admin_link: bool
 
@@ -55,6 +56,7 @@ def get_capabilities(user) -> CapabilitySet:
             can_save_plans=False,
             can_print=False,
             can_export_pdf=False,
+            can_view_full_schedule=False,
             max_saved_plans=0,
             can_see_admin_link=False,
         )
@@ -74,6 +76,7 @@ def get_capabilities(user) -> CapabilitySet:
             can_save_plans=True,
             can_print=True,
             can_export_pdf=True,
+            can_view_full_schedule=True,
             max_saved_plans=None,
             can_see_admin_link=override and user.is_superuser,
         )
@@ -87,10 +90,11 @@ def get_capabilities(user) -> CapabilitySet:
         can_calculate=True,
         can_compare=True,
         can_compare_unlimited=False,
-        can_save_plans=True,
+        can_save_plans=False,
         can_print=True,
         can_export_pdf=False,
-        max_saved_plans=1,
+        can_view_full_schedule=False,
+        max_saved_plans=0,
         can_see_admin_link=False,
     )
 
@@ -110,7 +114,11 @@ def can_create_plan(user) -> bool:
 def plan_limit_message(user) -> str:
     capabilities = get_capabilities(user)
     if not capabilities.is_authenticated:
-        return "Create a free account to save your plan."
-    if capabilities.max_saved_plans == 1:
-        return "Free accounts can save one plan. Upgrade to unlock unlimited saved plans and PDF export."
+        return "Create an account to build and view your debt payoff plan."
+    if not capabilities.can_save_plans:
+        return "If you want to save plans, you will need to upgrade to the Pro plan."
     return "Your account includes unlimited saved plans."
+
+
+def upgrade_message(feature_name: str) -> str:
+    return f"If you want to use {feature_name}, you will need to upgrade to the Pro plan."

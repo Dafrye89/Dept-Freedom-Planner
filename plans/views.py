@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from accounts.services.access import can_create_plan, get_capabilities
+from accounts.services.access import get_capabilities, upgrade_message
 from core.services.draft import get_draft
 from core.services.events import log_event
+from core.services.schedule import get_requested_schedule_page, paginate_schedule
 from plans.forms import DebtItemFormSet, DebtPlanForm, ScenarioComparisonForm
 from plans.models import DebtPlan
 from plans.services import (
@@ -37,9 +38,10 @@ def save_draft_plan(request):
     if not draft.get("debts"):
         messages.warning(request, "There is no draft to save yet.")
         return redirect("core:planner_debts")
-    if not can_create_plan(request.user):
-        messages.warning(request, "Your free account already has one saved plan. Upgrade to unlock unlimited plans.")
-        return redirect("billing:pricing")
+    capabilities = get_capabilities(request.user)
+    if not capabilities.can_save_plans:
+        messages.warning(request, upgrade_message("save plans"))
+        return redirect("accounts:settings")
 
     plan = create_saved_plan_from_draft(user=request.user, draft=draft)
     log_event(
@@ -62,6 +64,11 @@ def plan_detail(request, pk):
     )
     capabilities = get_capabilities(request.user)
     result = solve_payoff_plan(**plan_to_engine_payload(plan))
+    requested_page = get_requested_schedule_page(request.GET.get("schedule_page"))
+    if requested_page > 1 and not capabilities.can_view_full_schedule:
+        messages.warning(request, upgrade_message("the full monthly schedule"))
+        return redirect("accounts:settings")
+    schedule_page_obj = paginate_schedule(result["schedule"], requested_page)
     comparisons = create_comparisons(plan_to_engine_payload(plan))
     return render(
         request,
@@ -78,6 +85,7 @@ def plan_detail(request, pk):
                 }
             ),
             "capabilities": capabilities,
+            "schedule_page_obj": schedule_page_obj,
         },
     )
 
@@ -131,8 +139,8 @@ def plan_delete(request, pk):
 def plan_add_scenario(request, pk):
     capabilities = get_capabilities(request.user)
     if not capabilities.can_compare_unlimited:
-        messages.warning(request, "Unlimited scenario comparisons are part of the paid tier.")
-        return redirect("billing:pricing")
+        messages.warning(request, upgrade_message("custom scenarios"))
+        return redirect("accounts:settings")
 
     plan = get_object_or_404(DebtPlan, pk=pk, user=request.user, is_archived=False)
     form = ScenarioComparisonForm(request.POST)

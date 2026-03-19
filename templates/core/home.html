@@ -7,19 +7,20 @@
   <section class="hero">
     <div class="hero-grid">
       <div>
-        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Debt payoff made simple</span>
-        <h1>Build your debt-free roadmap with confidence.</h1>
+        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Simple. Reliable. Free to start.</span>
+        <h1>Build your debt-free roadmap and earn your way back to breathing room.</h1>
         <p>
-          Debt Freedom Planner turns balances, rates, and minimum payments into one calm step-by-step plan.
-          No bank connection. No spreadsheet. Just one clear next move and a payoff date you can understand.
+          No one is coming to fix the numbers for you. Debt Freedom Planner helps you do it yourself with a calm,
+          patriotic step-by-step system that turns balances, rates, and minimum payments into one clear next move.
         </p>
         <div class="hero-actions mt-6">
-          <a class="button button-primary" href="{% url 'core:planner_start' %}">See my payoff plan</a>
-          <a class="button button-secondary" href="{% url 'billing:pricing' %}">View free and paid tiers</a>
+          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start free</a>
+          <a class="button button-secondary" href="{% url 'billing:pricing' %}">See pricing</a>
         </div>
+        <div class="muted mt-4 text-white/85">Start free - no charge for {{ stripe_trial_period_days }} days. $0 today, then ${{ stripe_pro_monthly_price }}/month if you keep Pro.</div>
         <div class="step-track mt-6">
-          <span class="step-pill current">1. List your debts</span>
-          <span class="step-pill current">2. Choose your strategy</span>
+          <span class="step-pill current">1. Create your account</span>
+          <span class="step-pill current">2. List your debts</span>
           <span class="step-pill current">3. Follow one next step</span>
         </div>
       </div>
@@ -46,16 +47,16 @@
 
   <section class="trust-strip">
     <article class="trust-strip__item">
-      <strong>Start anonymously</strong>
-      <p>Run the calculator immediately. Create an account only when you want to save or print.</p>
+      <strong>Account first, confusion second</strong>
+      <p>Sign in before you start so your payoff plan, billing, and progress stay tied to one household account.</p>
     </article>
     <article class="trust-strip__item">
-      <strong>Large-text, low-stress design</strong>
-      <p>Every page is built for people who do not enjoy complicated apps or dense financial dashboards.</p>
+      <strong>No fluff. Just results.</strong>
+      <p>Large text, familiar labels, and one obvious next step on every screen keep the planner easy to use.</p>
     </article>
     <article class="trust-strip__item">
-      <strong>Patriotic without the noise</strong>
-      <p>Strong navy, white, and red accents signal trust and progress without becoming a novelty theme.</p>
+      <strong>$0 today. Cancel anytime.</strong>
+      <p>Pro starts with a {{ stripe_trial_period_days }}-day free trial so you can decide only after it proves itself.</p>
     </article>
   </section>
 
@@ -63,17 +64,17 @@
     <article class="feature-card">
       <span class="eyebrow">How it works</span>
       <h3>Gather every balance once</h3>
-      <p class="muted">Cards, auto loans, personal loans, and payment plans all go into one guided list with large, familiar labels.</p>
+      <p class="muted">Cards, truck loans, store accounts, and personal loans all go into one guided list with large, familiar labels.</p>
     </article>
     <article class="feature-card">
       <span class="eyebrow">Choose a path</span>
-      <h3>Compare snowball, avalanche, or custom order</h3>
-      <p class="muted">Watch the payoff date, monthly payment, and interest estimate update before you commit to a strategy.</p>
+      <h3>Compare payoff styles without spreadsheets</h3>
+      <p class="muted">Snowball, avalanche, and custom order all update against the same numbers so you can choose the path you will actually follow.</p>
     </article>
     <article class="feature-card">
-      <span class="eyebrow">Follow the roadmap</span>
-      <h3>See your next target in plain language</h3>
-      <p class="muted">You will always know which debt comes first, how long the plan takes, and what the next month should look like.</p>
+      <span class="eyebrow">Take control</span>
+      <h3>See the next step in plain English</h3>
+      <p class="muted">Freedom is not given. It is built one payment at a time, and the planner tells you where that payment goes next.</p>
     </article>
   </section>
 
@@ -81,9 +82,9 @@
     <article class="panel">
       <div class="panel-header">
         <div>
-          <span class="eyebrow">Sample outcome</span>
-          <h2>You could be debt-free by {{ sample_plan.summary.projected_payoff_date_label }}</h2>
-          <p>Here is what a calm, consistent payoff plan looks like once the debts are organized.</p>
+          <span class="eyebrow">Illustrative outcome</span>
+          <h2>A steady household could be debt-free by {{ sample_plan.summary.projected_payoff_date_label }}</h2>
+          <p>Example household numbers below show how one organized plan can cut through the noise.</p>
         </div>
         <span class="badge">{{ sample_plan.summary.months_to_payoff }} months</span>
       </div>
@@ -119,36 +120,54 @@
     </article>
   </section>
 
+  <section class="feature-grid">
+    <article class="feature-card">
+      <span class="eyebrow">Illustrative story</span>
+      <h3>The Martins stopped guessing</h3>
+      <p class="muted">Example only: one couple used the roadmap to stop spreading extra money across five balances and cut nearly $4,800 in projected interest.</p>
+    </article>
+    <article class="feature-card">
+      <span class="eyebrow">Illustrative story</span>
+      <h3>A retired pair got a paper plan</h3>
+      <p class="muted">Example only: after years of avoiding finance apps, they finally printed one month-by-month plan they could read at the kitchen table.</p>
+    </article>
+    <article class="feature-card">
+      <span class="eyebrow">Illustrative review</span>
+      <h3>"No drama. Just the next step."</h3>
+      <p class="muted">Example testimonial style: built to show the tone of the product, not to represent a verified customer endorsement.</p>
+    </article>
+  </section>
+
   <section class="page-grid">
     <article class="panel">
       <div class="panel-header">
         <div>
-          <span class="eyebrow">Free vs paid</span>
-          <h2>Start free. Upgrade only if you need more room.</h2>
+          <span class="eyebrow">Free vs Pro</span>
+          <h2>Start free. Upgrade only if it proves itself.</h2>
         </div>
       </div>
       <div class="plan-grid xl:!grid-cols-2">
         <article class="pricing-card">
-          <span class="eyebrow">Free tier</span>
-          <h3 class="mt-4 text-2xl font-bold">Useful from day one</h3>
+          <span class="eyebrow">Free</span>
+          <h3 class="mt-4 text-2xl font-bold">Built for clarity</h3>
           <ul class="pricing-list">
-            <li>Anonymous calculator and strategy comparison</li>
-            <li>One saved plan after signup</li>
-            <li>Print view for a paper copy</li>
+            <li>Account-based planner and built-in strategy comparison</li>
+            <li>First 18 months of the payoff schedule</li>
+            <li>Print view for paper review</li>
           </ul>
         </article>
         <article class="pricing-card">
-          <span class="eyebrow">Paid tier</span>
-          <h3 class="mt-4 text-2xl font-bold">Built for deeper planning</h3>
+          <span class="eyebrow">Pro</span>
+          <h3 class="mt-4 text-2xl font-bold">Start free - no charge for {{ stripe_trial_period_days }} days</h3>
           <ul class="pricing-list">
-            <li>Unlimited saved plans</li>
-            <li>Unlimited custom what-if comparisons</li>
-            <li>PDF export for sharing and filing</li>
+            <li>Saved plans and full schedule access</li>
+            <li>Unlimited custom scenarios</li>
+            <li>PDF export and Stripe billing portal</li>
           </ul>
         </article>
       </div>
       <div class="button-row mt-5">
-        <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
+        <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start free</a>
         <a class="button button-secondary" href="{% url 'billing:pricing' %}">See pricing details</a>
       </div>
     </article>
@@ -163,12 +182,12 @@
       <ul class="list-check">
         <li>Big buttons and strong contrast on desktop and mobile</li>
         <li>Simple words instead of financial jargon</li>
-        <li>Obvious primary action on every page</li>
-        <li>Print-friendly output for users who trust paper more than screens</li>
+        <li>One clear primary action on every screen</li>
+        <li>Paper-friendly print output for households that trust a hard copy</li>
       </ul>
       <div class="cta-box mt-5">
-        <strong>You stay in control.</strong>
-        <div class="muted">The planner never asks for bank logins, card numbers, or automatic account connections.</div>
+        <strong>You keep control.</strong>
+        <div class="muted">No bank login. No imported noise. Just your numbers, your plan, and the discipline to follow it.</div>
       </div>
     </article>
   </section>
@@ -190,27 +209,27 @@
     </div>
     <div class="accordion-item">
       <button class="accordion-toggle" type="button" @click="open = open === 2 ? 0 : 2">
-        <span>Can I use it before I sign up?</span>
+        <span>Will I be charged today?</span>
         <span x-text="open === 2 ? '-' : '+'"></span>
       </button>
-      <p class="muted" x-show="open === 2">Yes. The calculator and comparison tools work right away. Accounts are only needed for saving, printing, and paid features.</p>
+      <p class="muted" x-show="open === 2">No. Pro starts with a {{ stripe_trial_period_days }}-day free trial. Cancel before day {{ stripe_trial_period_days }} and you will not be charged.</p>
     </div>
     <div class="accordion-item">
       <button class="accordion-toggle" type="button" @click="open = open === 3 ? 0 : 3">
-        <span>What happens after I finish the calculator?</span>
+        <span>What happens after I create an account?</span>
         <span x-text="open === 3 ? '-' : '+'"></span>
       </button>
-      <p class="muted" x-show="open === 3">You will see the payoff date, the first debt to focus on, the monthly schedule, and options to save, print, or upgrade.</p>
+      <p class="muted" x-show="open === 3">You can list debts, compare strategies, and see a plain-language payoff roadmap. Pro unlocks saving, full schedule paging, and export features.</p>
     </div>
   </section>
 
   <section class="hero">
     <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Ready when you are</span>
-    <h2>Start your plan in a few minutes.</h2>
-    <p>Gather your balances and minimum payments, then let the planner turn them into one clear payoff roadmap.</p>
+    <h2>Pull your numbers together and start free.</h2>
+    <p>Use it. If it helps, keep it. If not, cancel before the {{ stripe_trial_period_days }}-day trial ends.</p>
     <div class="hero-actions mt-6">
-      <a class="button button-primary" href="{% url 'core:planner_start' %}">Start my plan now</a>
-      <a class="button button-secondary" href="{% url 'account_login' %}">I already have an account</a>
+      <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Free</a>
+      <a class="button button-secondary" href="{% url 'account_login' %}?next={% url 'core:planner_start' %}">I already have an account</a>
     </div>
   </section>
 {% endblock %}

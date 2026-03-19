@@ -12,11 +12,7 @@
       <div class="page-header__actions">
         <a class="button button-primary" href="{% url 'plans:edit' saved_plan.pk %}">Edit this plan</a>
         <a class="button button-secondary" href="{% url 'exports:plan_print' saved_plan.pk %}">Print view</a>
-        {% if capabilities.can_export_pdf %}
-          <a class="button button-secondary" href="{% url 'exports:plan_pdf' saved_plan.pk %}">Download PDF</a>
-        {% else %}
-          <a class="button button-secondary" href="{% url 'billing:pricing' %}">Unlock PDF export</a>
-        {% endif %}
+        <a class="button button-secondary" href="{% url 'exports:plan_pdf' saved_plan.pk %}">Download PDF</a>
       </div>
     </div>
     <div class="page-header__body">
@@ -82,33 +78,33 @@
       </div>
     </div>
 
-    {% if capabilities.can_compare_unlimited %}
-      <form class="stack" method="post" action="{% url 'plans:add_scenario' saved_plan.pk %}">
-        {% csrf_token %}
-        <div class="field-grid">
-          <div class="field">
-            <label for="{{ scenario_form.scenario_name.id_for_label }}">Scenario name</label>
-            {{ scenario_form.scenario_name }}
-          </div>
-          <div class="field">
-            <label for="{{ scenario_form.strategy_type.id_for_label }}">Strategy</label>
-            {{ scenario_form.strategy_type }}
-          </div>
-          <div class="field">
-            <label for="{{ scenario_form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
-            {{ scenario_form.extra_monthly_payment }}
-          </div>
-        </div>
-        <div class="button-row">
-          <button class="button button-primary" type="submit">Add scenario</button>
-        </div>
-      </form>
-    {% else %}
+    {% if not capabilities.can_compare_unlimited %}
       <div class="upgrade-box">
         <strong>Paid access unlocks unlimited custom scenario comparisons.</strong>
         <div class="muted">Free accounts can still compare the built-in strategy options above.</div>
       </div>
     {% endif %}
+
+    <form class="stack" method="post" action="{% url 'plans:add_scenario' saved_plan.pk %}">
+      {% csrf_token %}
+      <div class="field-grid">
+        <div class="field">
+          <label for="{{ scenario_form.scenario_name.id_for_label }}">Scenario name</label>
+          {{ scenario_form.scenario_name }}
+        </div>
+        <div class="field">
+          <label for="{{ scenario_form.strategy_type.id_for_label }}">Strategy</label>
+          {{ scenario_form.strategy_type }}
+        </div>
+        <div class="field">
+          <label for="{{ scenario_form.extra_monthly_payment.id_for_label }}">Extra monthly payment</label>
+          {{ scenario_form.extra_monthly_payment }}
+        </div>
+      </div>
+      <div class="button-row">
+        <button class="button button-primary" type="submit">Add scenario</button>
+      </div>
+    </form>
 
     <div class="comparison-grid" style="margin-top:20px;">
       {% for scenario in saved_scenarios %}
@@ -134,12 +130,12 @@
   </section>
 
   <section class="panel">
-    <div class="panel-header">
-      <div>
-        <span class="eyebrow">Monthly schedule</span>
-        <h3>First 18 schedule rows</h3>
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Monthly schedule</span>
+        <h3>Monthly payoff schedule</h3>
+        </div>
       </div>
-    </div>
     {% include "partials/schedule_table.html" %}
   </section>
 

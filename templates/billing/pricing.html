@@ -6,30 +6,31 @@
   <section class="hero">
     <span class="eyebrow">Pricing</span>
     <h2>Choose the level that fits your household</h2>
-    <p>The free tier is designed to be genuinely useful. Pro is ${{ stripe_pro_monthly_price }} per month for households who want unlimited saved plans, unlimited comparisons, and PDF export.</p>
+    <p>Start free with a calm, account-based planner. Pro is $0 today, then ${{ stripe_pro_monthly_price }} per month after your {{ stripe_trial_period_days }}-day free trial.</p>
   </section>
 
   <section class="page-grid">
     <article class="pricing-card">
       <span class="eyebrow">Free</span>
-      <h3 class="mt-4 text-2xl font-bold">Start at no cost</h3>
-      <p class="muted">Best for first-time users who want clarity right away.</p>
+      <h3 class="mt-4 text-2xl font-bold">Start with the essentials</h3>
+      <p class="muted">Best for households that want a clear plan before they commit to Pro.</p>
       <ul class="pricing-list">
-        <li>Anonymous calculator and comparison</li>
-        <li>One saved plan after signup</li>
+        <li>Account-required planner and strategy comparison</li>
+        <li>View the first 18 months of the payoff schedule</li>
         <li>Print view</li>
       </ul>
       <div class="card-actions" style="margin-top:16px;">
-        <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
+        <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Create free account</a>
       </div>
     </article>
 
     <article class="pricing-card">
       <span class="eyebrow">Paid</span>
-      <h3 class="mt-4 text-2xl font-bold">DFP Pro for ${{ stripe_pro_monthly_price }}/month</h3>
-      <p class="muted">Best for households that want exports and multiple plan scenarios.</p>
+      <h3 class="mt-4 text-2xl font-bold">$0 today, then ${{ stripe_pro_monthly_price }}/month</h3>
+      <p class="muted">Full Pro access starts immediately. Cancel anytime before day {{ stripe_trial_period_days }} and you will not be charged.</p>
       <ul class="pricing-list">
         <li>Unlimited saved plans</li>
+        <li>Full month-by-month schedule navigation</li>
         <li>Unlimited strategy comparisons</li>
         <li>PDF export</li>
       </ul>
@@ -54,12 +55,12 @@
         <div class="card-actions" style="margin-top:16px;">
           <form method="post" action="{% url 'billing:checkout' %}">
             {% csrf_token %}
-            <button class="button button-primary" type="submit">Start Pro subscription</button>
+            <button class="button button-primary" type="submit">Start free — no charge for {{ stripe_trial_period_days }} days</button>
           </form>
         </div>
       {% else %}
         <div class="card-actions" style="margin-top:16px;">
-          <a class="button button-primary" href="{% url 'account_signup' %}">Create account to upgrade</a>
+          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'billing:pricing' %}">Create account to start free</a>
         </div>
       {% endif %}
     </article>
@@ -75,11 +76,11 @@
     <div class="page-grid">
       <article class="notice-box">
         <strong>Create the account first.</strong>
-        <div class="muted mt-3">The subscription is tied to your planner account so your saved plans and access stay together.</div>
+        <div class="muted mt-3">The subscription is tied to your planner account so your saved plans, full schedule access, and billing state stay together.</div>
       </article>
       <article class="notice-box">
         <strong>Billing changes happen in the Stripe portal.</strong>
-        <div class="muted mt-3">Paid users can update cards, cancel, or review subscription details through Stripe’s hosted billing portal.</div>
+        <div class="muted mt-3">Paid users can update cards, cancel, or review subscription details through Stripe's hosted billing portal.</div>
       </article>
     </div>
   </section>

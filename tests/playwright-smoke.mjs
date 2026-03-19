@@ -102,7 +102,7 @@ await waitForServer(`${baseUrl}/`);
 
 const browser = await chromium.launch({ headless: true });
 
-const fillAnonymousPlanner = async (page) => {
+const fillPlanner = async (page) => {
   await page.goto(`${baseUrl}/planner/start/`, { waitUntil: "networkidle" });
   await page.fill('input[name="details-title"]', "Playwright Guided Plan");
   await page.fill('input[name="details-household_name"]', "Patriotic Household");
@@ -146,28 +146,27 @@ try {
 
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await page.screenshot({ path: path.join(artifactDir, "desktop-home.png"), fullPage: true });
-  await expectText(page, "Build your debt-free roadmap with confidence.");
-  await expectText(page, "Start anonymously");
-
-  await fillAnonymousPlanner(page);
-  await expectText(page, "You could be debt-free");
-  await page.screenshot({ path: path.join(artifactDir, "desktop-results.png"), fullPage: true });
+  await expectText(page, "Build your debt-free roadmap and earn your way back to breathing room.");
+  await expectText(page, "Start free");
 
   const freeEmail = `free-smoke-${Date.now()}@example.com`;
   const freeUsername = `freesmoke${Date.now()}`;
-  await page.goto(`${baseUrl}/accounts/signup/`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/accounts/signup/?next=/planner/start/`, { waitUntil: "networkidle" });
   await page.fill('input[name="email"]', freeEmail);
   await page.fill('input[name="username"]', freeUsername);
   await page.fill('input[name="password1"]', "Freedom_12345");
   await page.fill('input[name="password2"]', "Freedom_12345");
   await Promise.all([
-    page.waitForURL("**/planner/results/"),
+    page.waitForURL("**/planner/start/"),
     page.getByRole("button", { name: "Create account" }).click(),
   ]);
+  await fillPlanner(page);
+  await expectText(page, "You could be debt-free");
+  await page.screenshot({ path: path.join(artifactDir, "desktop-results.png"), fullPage: true });
   await page.getByRole("button", { name: "Save this plan" }).click();
-  await page.waitForFunction(() => window.location.pathname.startsWith("/plans/"));
+  await page.waitForFunction(() => window.location.pathname.startsWith("/account/settings/"));
   await page.waitForLoadState("networkidle");
-  await expectText(page, "Saved plan");
+  await expectText(page, "upgrade to the Pro plan");
   await page.screenshot({ path: path.join(artifactDir, "desktop-free-plan.png"), fullPage: true });
   await desktopContext.close();
 
@@ -220,9 +219,20 @@ try {
   const mobilePage = await mobileContext.newPage();
   await mobilePage.goto(baseUrl, { waitUntil: "networkidle" });
   await mobilePage.getByRole("button", { name: "Open marketing navigation" }).waitFor();
-  await expectText(mobilePage, "Start your plan in a few minutes.");
+  await expectText(mobilePage, "Pull your numbers together and start free.");
   await mobilePage.screenshot({ path: path.join(artifactDir, "mobile-home.png"), fullPage: true });
-  await fillAnonymousPlanner(mobilePage);
+  const mobileEmail = `mobile-smoke-${Date.now()}@example.com`;
+  const mobileUsername = `mobilesmoke${Date.now()}`;
+  await mobilePage.goto(`${baseUrl}/accounts/signup/?next=/planner/start/`, { waitUntil: "networkidle" });
+  await mobilePage.fill('input[name="email"]', mobileEmail);
+  await mobilePage.fill('input[name="username"]', mobileUsername);
+  await mobilePage.fill('input[name="password1"]', "Freedom_12345");
+  await mobilePage.fill('input[name="password2"]', "Freedom_12345");
+  await Promise.all([
+    mobilePage.waitForURL("**/planner/start/"),
+    mobilePage.getByRole("button", { name: "Create account" }).click(),
+  ]);
+  await fillPlanner(mobilePage);
   await mobilePage.screenshot({ path: path.join(artifactDir, "mobile-results.png"), fullPage: true });
   await mobileContext.close();
 } finally {

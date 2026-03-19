@@ -8,10 +8,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from io import BytesIO
 
-from accounts.services.access import get_capabilities
+from accounts.services.access import get_capabilities, upgrade_message
 from core.services.draft import calculate_from_draft, get_draft
 from plans.models import DebtPlan
 from plans.services import plan_to_engine_payload
+from core.services.schedule import paginate_schedule
 from calculator.services.payoff_engine import create_comparisons, solve_payoff_plan
 
 PDF_STYLES = """
@@ -138,6 +139,8 @@ def draft_print(request):
             "plan": plan,
             "comparisons": comparisons,
             "print_mode": True,
+            "schedule_page_obj": paginate_schedule(plan["schedule"], 1),
+            "capabilities": capabilities,
         },
     )
 
@@ -145,6 +148,7 @@ def draft_print(request):
 @login_required
 def plan_print(request, pk):
     plan_obj = get_object_or_404(DebtPlan.objects.prefetch_related("debt_items"), pk=pk, user=request.user, is_archived=False)
+    capabilities = get_capabilities(request.user)
     plan = solve_payoff_plan(**plan_to_engine_payload(plan_obj))
     comparisons = create_comparisons(plan_to_engine_payload(plan_obj))
     return render(
@@ -155,6 +159,8 @@ def plan_print(request, pk):
             "plan": plan,
             "comparisons": comparisons,
             "print_mode": True,
+            "schedule_page_obj": paginate_schedule(plan["schedule"], 1),
+            "capabilities": capabilities,
         },
     )
 
@@ -163,8 +169,8 @@ def plan_print(request, pk):
 def plan_pdf(request, pk):
     capabilities = get_capabilities(request.user)
     if not capabilities.can_export_pdf:
-        messages.warning(request, "PDF export is part of the paid tier.")
-        return redirect("billing:pricing")
+        messages.warning(request, upgrade_message("PDF export"))
+        return redirect("accounts:settings")
 
     plan_obj = get_object_or_404(DebtPlan.objects.prefetch_related("debt_items"), pk=pk, user=request.user, is_archived=False)
     plan = solve_payoff_plan(**plan_to_engine_payload(plan_obj))
@@ -178,6 +184,8 @@ def plan_pdf(request, pk):
                 "plan": plan,
                 "comparisons": comparisons,
                 "print_mode": True,
+                "schedule_page_obj": paginate_schedule(plan["schedule"], 1),
+                "capabilities": capabilities,
             },
             f"debt-freedom-plan-{plan_obj.pk}.pdf",
         )

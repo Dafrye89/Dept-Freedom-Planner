@@ -8,7 +8,7 @@
     <div class="page-header__band">
       <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Dashboard</span>
       <h1 class="page-header__title">Your saved debt plans</h1>
-      <p class="page-header__copy">Open a saved plan, start a new one, or compare what the free and paid tiers include.</p>
+      <p class="page-header__copy">Open a saved plan, start a new one, or review the Pro features that unlock plan storage and deeper tracking.</p>
       <div class="page-header__actions">
         <a class="button button-primary" href="{% url 'core:planner_start' %}">Start a new plan</a>
         <a class="button button-secondary" href="{% url 'billing:pricing' %}">Compare free and paid</a>
@@ -52,7 +52,7 @@
   {% else %}
     <section class="panel empty-state">
       <h3>No saved plans yet.</h3>
-      <p class="muted">Free accounts can save one plan. Paid accounts can save as many as they want.</p>
+      <p class="muted">Pro accounts can save plans, keep full payoff history, and reopen them later.</p>
       <a class="button button-primary" href="{% url 'core:planner_start' %}">Build my first plan</a>
     </section>
   {% endif %}

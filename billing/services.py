@@ -125,6 +125,7 @@ def create_checkout_session(*, user: CustomUser) -> str:
         client_reference_id=str(user.pk),
         metadata={"user_id": str(user.pk)},
         line_items=[{"price": settings.STRIPE_PRO_PRICE_ID, "quantity": 1}],
+        subscription_data={"trial_period_days": settings.STRIPE_TRIAL_PERIOD_DAYS},
         allow_promotion_codes=True,
         success_url=f"{settings.APP_BASE_URL}{reverse('billing:checkout_success')}?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{settings.APP_BASE_URL}{reverse('billing:checkout_cancel')}",

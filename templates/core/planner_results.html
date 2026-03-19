@@ -18,7 +18,7 @@
       <div class="page-header__actions">
         <a class="button button-secondary" href="{% url 'core:planner_debts' %}">Edit debts</a>
         <a class="button button-secondary" href="{% url 'core:planner_strategy' %}">Adjust strategy</a>
-        {% if user.is_authenticated and capabilities.can_print %}
+        {% if capabilities.can_print %}
           <a class="button button-ghost" href="{% url 'exports:draft_print' %}">Open print view</a>
         {% endif %}
       </div>
@@ -114,27 +114,28 @@
 
     {% if not user.is_authenticated %}
       <div class="cta-box">
-        <strong>Create a free account to save one plan and unlock print view.</strong>
+        <strong>Create an account to build your debt payoff plan.</strong>
       </div>
       <div class="button-row" style="margin-top:16px;">
         <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
         <a class="button button-secondary" href="{% url 'account_login' %}">I already have an account</a>
       </div>
     {% else %}
-      {% if can_save_current_plan %}
-        <form class="inline-form" method="post" action="{% url 'plans:save_draft' %}">
-          {% csrf_token %}
-          <button class="button button-primary" type="submit">Save this plan</button>
-        </form>
-      {% else %}
+      {% if not capabilities.can_save_plans %}
         <div class="upgrade-box">
           <strong>{{ plan_limit_message }}</strong>
+          <div class="muted">Start free for {{ stripe_trial_period_days|default:30 }} days, pay $0 today, then ${{ stripe_pro_monthly_price|default:"19.95" }}/month if you keep it.</div>
         </div>
       {% endif %}
 
+      <form class="inline-form" method="post" action="{% url 'plans:save_draft' %}">
+        {% csrf_token %}
+        <button class="button button-primary" type="submit">Save this plan</button>
+      </form>
+
       <div class="button-row" style="margin-top:16px;">
         <a class="button button-secondary" href="{% url 'plans:dashboard' %}">Go to my dashboard</a>
-        <a class="button button-secondary" href="{% url 'billing:pricing' %}">See paid features</a>
+        <a class="button button-secondary" href="{% url 'accounts:settings' %}">See paid features</a>
       </div>
     {% endif %}
   </section>

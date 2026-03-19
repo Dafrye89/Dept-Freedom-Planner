@@ -13,7 +13,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for row in plan.schedule|slice:":18" %}
+      {% for row in schedule_page_obj.object_list %}
         <tr>
           <td>{{ row.month_label }}</td>
           <td>{{ row.debt_name }}</td>
@@ -27,4 +27,18 @@
     </tbody>
   </table>
 </div>
-<div class="muted mt-3">Showing the first 18 schedule rows so the table stays readable. Saved plans keep the full calculation behind the scenes.</div>
+{% if schedule_page_obj.paginator.num_pages > 1 %}
+  <div class="button-row mt-4">
+    {% if schedule_page_obj.has_previous %}
+      <a class="button button-secondary" href="?schedule_page={{ schedule_page_obj.previous_page_number }}">Previous 18 months</a>
+    {% endif %}
+    {% if schedule_page_obj.has_next %}
+      <a class="button button-secondary" href="?schedule_page={{ schedule_page_obj.next_page_number }}">Next 18 months</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% if capabilities.can_view_full_schedule %}
+  <div class="muted mt-3">Page {{ schedule_page_obj.number }} of {{ schedule_page_obj.paginator.num_pages }}. Paid access lets you page through every month of the plan.</div>
+{% else %}
+  <div class="muted mt-3">Free accounts can view the first 18 schedule rows. Use the navigation controls above to upgrade for the full month-by-month schedule.</div>
+{% endif %}

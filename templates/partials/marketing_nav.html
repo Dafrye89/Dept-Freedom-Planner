@@ -31,8 +31,8 @@
         <a class="button-secondary hidden lg:inline-flex" href="{% url 'plans:dashboard' %}">Open dashboard</a>
         <a class="button-primary" href="{% url 'core:planner_start' %}">Start a plan</a>
       {% else %}
-        <a class="button-secondary hidden sm:inline-flex" href="{% url 'account_signup' %}">Create free account</a>
-        <a class="button-primary" href="{% url 'core:planner_start' %}">See my payoff plan</a>
+        <a class="button-secondary hidden sm:inline-flex" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Create account</a>
+        <a class="button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Free</a>
       {% endif %}
     </div>
   </div>

@@ -30,6 +30,7 @@ def pricing(request):
             "stripe_enabled": is_stripe_configured(),
             "stripe_publishable_key": get_publishable_key(),
             "stripe_pro_monthly_price": settings.STRIPE_PRO_MONTHLY_PRICE,
+            "stripe_trial_period_days": settings.STRIPE_TRIAL_PERIOD_DAYS,
         },
     )
 
