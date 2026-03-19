@@ -6,6 +6,10 @@ import environ
 
 AZURE_DEFAULT_HOSTNAME = "debt-freedom-planner-fgfxd3daanaud0fc.centralus-01.azurewebsites.net"
 AZURE_DEFAULT_HTTPS_URL = f"https://{AZURE_DEFAULT_HOSTNAME}"
+PRIMARY_PRODUCTION_HOSTNAME = "debtfreedomplan.net"
+PRIMARY_PRODUCTION_WWW_HOSTNAME = "www.debtfreedomplan.net"
+PRIMARY_PRODUCTION_HTTPS_URL = f"https://{PRIMARY_PRODUCTION_HOSTNAME}"
+PRIMARY_PRODUCTION_WWW_HTTPS_URL = f"https://{PRIMARY_PRODUCTION_WWW_HOSTNAME}"
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -44,7 +48,7 @@ def _unique(values):
 BASE_DIR = Path(__file__).resolve().parent.parent
 WEBSITE_HOSTNAME = os.environ.get("WEBSITE_HOSTNAME", "").strip()
 RUNNING_ON_AZURE = bool(WEBSITE_HOSTNAME)
-DEFAULT_APP_BASE_URL = AZURE_DEFAULT_HTTPS_URL if RUNNING_ON_AZURE else "http://127.0.0.1:8000"
+DEFAULT_APP_BASE_URL = PRIMARY_PRODUCTION_HTTPS_URL if RUNNING_ON_AZURE else "http://127.0.0.1:8000"
 env = environ.Env(
     ALLOWED_HOSTS=(list, ["127.0.0.1", "localhost", "testserver"]),
     CSRF_TRUSTED_ORIGINS=(list, []),
@@ -87,6 +91,8 @@ DEFAULT_DATABASE_URL = (
 configured_allowed_hosts = _clean_list(env("ALLOWED_HOSTS"))
 runtime_allowed_hosts = _clean_list(
     [
+        PRIMARY_PRODUCTION_HOSTNAME,
+        PRIMARY_PRODUCTION_WWW_HOSTNAME,
         AZURE_DEFAULT_HOSTNAME,
         APP_BASE_HOST,
         WEBSITE_HOSTNAME,
@@ -98,6 +104,8 @@ configured_csrf_trusted_origins = _clean_list(env("CSRF_TRUSTED_ORIGINS"))
 runtime_csrf_trusted_origins = _clean_list(
     [
         APP_BASE_URL,
+        PRIMARY_PRODUCTION_HTTPS_URL,
+        PRIMARY_PRODUCTION_WWW_HTTPS_URL,
         AZURE_DEFAULT_HTTPS_URL,
         f"https://{WEBSITE_HOSTNAME}" if WEBSITE_HOSTNAME else "",
     ]
