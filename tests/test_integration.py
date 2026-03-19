@@ -90,7 +90,7 @@ class IntegrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-shell="marketing"')
-        self.assertContains(response, "Build your debt-free roadmap and earn your way back to breathing room.")
+        self.assertContains(response, "Debt Freedom Planner helps you build a solid, step-by-step roadmap to eliminate your balances and earn your way back to breathing room.")
 
     def test_anonymous_planner_routes_redirect_to_signup(self):
         for route_name in [

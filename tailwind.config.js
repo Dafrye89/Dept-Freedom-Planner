@@ -8,33 +8,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        patriotic: {
-          navy: "#0f204b",
-          blue: "#1a3673",
-          red: "#cc0000",
-          white: "#ffffff",
-          silver: "#dbe5f1",
-          gray: "#eef4fa",
-          ink: "#172033",
-          mute: "#5b677d",
+        brand: {
+          navy: "#0a192f",
+          blue: "#172a45",
+          red: "#b91c1c",
+          crimson: "#991b1b",
+          gold: "#d4af37",
+          light: "#f8fafc",
+          muted: "#64748b"
         },
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        heading: ["Montserrat", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Montserrat", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        soft: "0 18px 54px rgba(15, 32, 75, 0.12)",
-        glow: "0 24px 70px rgba(15, 32, 75, 0.18)",
-      },
-      backgroundImage: {
-        "patriot-gradient":
-          "linear-gradient(135deg, #0f204b 0%, #1a3673 56%, #cc0000 100%)",
-        "patriot-soft":
-          "linear-gradient(135deg, rgba(15, 32, 75, 0.96) 0%, rgba(26, 54, 115, 0.92) 56%, rgba(204, 0, 0, 0.82) 100%)",
-        "surface-glow":
-          "radial-gradient(circle at top left, rgba(26, 54, 115, 0.18), transparent 34%), radial-gradient(circle at right center, rgba(204, 0, 0, 0.12), transparent 28%), linear-gradient(180deg, #f8fbff 0%, #edf3f8 100%)",
-      },
+        'solid': '4px 4px 0 0 rgba(10, 25, 47, 1)',
+        'solid-red': '4px 4px 0 0 rgba(185, 28, 28, 1)',
+      }
     },
   },
   plugins: [],

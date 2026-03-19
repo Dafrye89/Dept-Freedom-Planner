@@ -146,7 +146,7 @@ try {
 
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await page.screenshot({ path: path.join(artifactDir, "desktop-home.png"), fullPage: true });
-  await expectText(page, "Build your debt-free roadmap and earn your way back to breathing room.");
+  await expectText(page, "Debt Freedom Planner helps you build a solid, step-by-step roadmap to eliminate your balances and earn your way back to breathing room.");
   await expectText(page, "Start free");
 
   const freeEmail = `free-smoke-${Date.now()}@example.com`;
@@ -219,7 +219,7 @@ try {
   const mobilePage = await mobileContext.newPage();
   await mobilePage.goto(baseUrl, { waitUntil: "networkidle" });
   await mobilePage.getByRole("button", { name: "Open marketing navigation" }).waitFor();
-  await expectText(mobilePage, "Pull your numbers together and start free.");
+  await expectText(mobilePage, "No one is coming to fix the numbers for you.");
   await mobilePage.screenshot({ path: path.join(artifactDir, "mobile-home.png"), fullPage: true });
   const mobileEmail = `mobile-smoke-${Date.now()}@example.com`;
   const mobileUsername = `mobilesmoke${Date.now()}`;

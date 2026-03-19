@@ -153,8 +153,8 @@
           datasets: [{
             label: "Balance remaining",
             data: [{% for point in plan.monthly_totals %}{{ point.total_ending_balance }}{% if not forloop.last %}, {% endif %}{% endfor %}],
-            borderColor: "#3a73f8",
-            backgroundColor: "rgba(58, 115, 248, 0.12)",
+            borderColor: "#0a192f",
+            backgroundColor: "rgba(10, 25, 47, 0.12)",
             tension: 0.2,
             fill: true
           }]

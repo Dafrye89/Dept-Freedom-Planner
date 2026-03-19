@@ -1,94 +1,78 @@
 {% extends "base_marketing.html" %}
 {% load formatting %}
+{% load static %}
 
 {% block title %}Debt Freedom Planner{% endblock %}
 
 {% block content %}
-  <section class="hero">
-    <div class="hero-grid">
-      <div>
-        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Simple. Reliable. Free to start.</span>
-        <h1>Build your debt-free roadmap and earn your way back to breathing room.</h1>
-        <p>
-          No one is coming to fix the numbers for you. Debt Freedom Planner helps you do it yourself with a calm,
-          patriotic step-by-step system that turns balances, rates, and minimum payments into one clear next move.
+  <section class="hero py-16 lg:py-24">
+    <div class="container-shell grid lg:grid-cols-2 gap-12 items-center">
+      <div class="z-10 relative">
+        <span class="inline-block py-1 px-3 border-2 border-brand-gold text-brand-gold font-black tracking-[0.2em] uppercase text-xs mb-6 rounded-sm bg-brand-navy/50">No-Nonsense Payoff Planning</span>
+        <h1 class="text-4xl lg:text-6xl font-black text-white leading-none mb-6 uppercase tracking-tight">Take Command<br><span class="text-brand-red">Of Your Debt.</span></h1>
+        <p class="text-lg text-slate-300 mb-8 max-w-lg leading-relaxed font-medium">
+          No one is coming to fix the numbers for you. Debt Freedom Planner helps you build a solid, step-by-step roadmap to eliminate your balances and earn your way back to breathing room.
         </p>
-        <div class="hero-actions mt-6">
-          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start free</a>
-          <a class="button button-secondary" href="{% url 'billing:pricing' %}">See pricing</a>
+        <div class="flex flex-wrap gap-4">
+          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Your Plan</a>
+          <a class="button button-ghost" href="{% url 'billing:pricing' %}">See Pricing</a>
         </div>
-        <div class="muted mt-4 text-white/85">Start free - no charge for {{ stripe_trial_period_days }} days. $0 today, then ${{ stripe_pro_monthly_price }}/month if you keep Pro.</div>
-        <div class="step-track mt-6">
-          <span class="step-pill current">1. Create your account</span>
-          <span class="step-pill current">2. List your debts</span>
-          <span class="step-pill current">3. Follow one next step</span>
+        <div class="mt-6 text-sm text-slate-400 font-bold uppercase tracking-wider">
+          Start free - no charge for {{ stripe_trial_period_days }} days.
         </div>
       </div>
-
-      <div class="grid gap-4">
-        <article class="spotlight-card">
-          <span>Sample debt-free date</span>
-          <strong>{{ sample_plan.summary.projected_payoff_date_label }}</strong>
-          <p>With a steady extra payment, the sample household reaches the finish line in {{ sample_plan.summary.months_to_payoff }} months.</p>
-        </article>
-        <div class="summary-grid !grid-cols-1 sm:!grid-cols-2 xl:!grid-cols-2">
-          <article class="summary-card border-white/20 bg-white/95">
-            <span>Total debt</span>
-            <strong>{{ sample_plan.summary.total_debt|currency }}</strong>
-          </article>
-          <article class="summary-card border-white/20 bg-white/95">
-            <span>First target</span>
-            <strong>{{ sample_plan.summary.first_target }}</strong>
-          </article>
-        </div>
+      <div class="relative z-10 hidden lg:block">
+        <div class="absolute inset-0 bg-brand-red transform translate-x-4 translate-y-4 rounded-sm shadow-solid-red"></div>
+        <img src="{% static 'img/conservative_man.jpg' %}" alt="Determined man" class="relative z-10 w-full h-auto rounded-sm border-4 border-brand-navy grayscale contrast-125" />
       </div>
     </div>
   </section>
 
-  <section class="trust-strip">
-    <article class="trust-strip__item">
-      <strong>Account first, confusion second</strong>
-      <p>Sign in before you start so your payoff plan, billing, and progress stay tied to one household account.</p>
-    </article>
-    <article class="trust-strip__item">
-      <strong>No fluff. Just results.</strong>
-      <p>Large text, familiar labels, and one obvious next step on every screen keep the planner easy to use.</p>
-    </article>
-    <article class="trust-strip__item">
-      <strong>$0 today. Cancel anytime.</strong>
-      <p>Pro starts with a {{ stripe_trial_period_days }}-day free trial so you can decide only after it proves itself.</p>
-    </article>
+  <section class="container-shell py-12 border-b-2 border-slate-200">
+    <div class="grid md:grid-cols-3 gap-8 text-center">
+      <article class="p-6">
+        <strong class="text-xl font-black text-brand-navy uppercase tracking-tight block mb-3">Account First</strong>
+        <p class="text-slate-700 font-medium">Sign in before you start so your payoff plan, billing, and progress stay tied securely to one household.</p>
+      </article>
+      <article class="p-6">
+        <strong class="text-xl font-black text-brand-navy uppercase tracking-tight block mb-3">No Fluff. Just Results.</strong>
+        <p class="text-slate-700 font-medium">Large text, familiar labels, and one obvious next step. We strip out the noise so you can focus on execution.</p>
+      </article>
+      <article class="p-6">
+        <strong class="text-xl font-black text-brand-navy uppercase tracking-tight block mb-3">Earn Your Freedom</strong>
+        <p class="text-slate-700 font-medium">Pro starts with a {{ stripe_trial_period_days }}-day free trial. Decide only after it proves itself to you and your family.</p>
+      </article>
+    </div>
   </section>
 
-  <section class="feature-grid">
-    <article class="feature-card">
-      <span class="eyebrow">How it works</span>
-      <h3>Gather every balance once</h3>
-      <p class="muted">Cards, truck loans, store accounts, and personal loans all go into one guided list with large, familiar labels.</p>
-    </article>
-    <article class="feature-card">
-      <span class="eyebrow">Choose a path</span>
-      <h3>Compare payoff styles without spreadsheets</h3>
-      <p class="muted">Snowball, avalanche, and custom order all update against the same numbers so you can choose the path you will actually follow.</p>
-    </article>
-    <article class="feature-card">
-      <span class="eyebrow">Take control</span>
-      <h3>See the next step in plain English</h3>
-      <p class="muted">Freedom is not given. It is built one payment at a time, and the planner tells you where that payment goes next.</p>
-    </article>
-  </section>
-
-  <section class="page-grid">
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <span class="eyebrow">Illustrative outcome</span>
-          <h2>A steady household could be debt-free by {{ sample_plan.summary.projected_payoff_date_label }}</h2>
-          <p>Example household numbers below show how one organized plan can cut through the noise.</p>
-        </div>
-        <span class="badge">{{ sample_plan.summary.months_to_payoff }} months</span>
+  <div class="container-shell py-16">
+    <div class="grid lg:grid-cols-2 gap-12 items-center mb-24">
+      <div class="order-2 lg:order-1 relative">
+        <div class="absolute inset-0 bg-brand-navy transform -translate-x-4 translate-y-4 rounded-sm shadow-solid"></div>
+        <img src="{% static 'img/conservative_woman.jpg' %}" alt="Organized household" class="relative z-10 w-full h-auto rounded-sm border-4 border-brand-navy grayscale contrast-125" />
       </div>
-      <div class="summary-grid xl:!grid-cols-2">
+      <div class="order-1 lg:order-2">
+        <span class="eyebrow">Real Results</span>
+        <h2 class="text-4xl font-black text-brand-navy mb-6 uppercase tracking-tight">Stop guessing. Start executing.</h2>
+        <p class="text-lg text-slate-700 mb-8 font-bold leading-relaxed">
+          Every strategy uses the exact same debts. The difference is the order, the discipline, and how quickly momentum builds. Snowball, avalanche, and custom order all update against your numbers instantly.
+        </p>
+        <ul class="space-y-4 mb-10">
+          <li class="flex items-center gap-4 font-black text-brand-navy uppercase tracking-wide text-lg"><span class="text-brand-red text-2xl" aria-hidden="true">&#9733;</span> Gather every balance once</li>
+          <li class="flex items-center gap-4 font-black text-brand-navy uppercase tracking-wide text-lg"><span class="text-brand-red text-2xl" aria-hidden="true">&#9733;</span> Compare payoff styles without spreadsheets</li>
+          <li class="flex items-center gap-4 font-black text-brand-navy uppercase tracking-wide text-lg"><span class="text-brand-red text-2xl" aria-hidden="true">&#9733;</span> See your next step in plain English</li>
+        </ul>
+        <a class="button button-secondary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Create Your Account</a>
+      </div>
+    </div>
+
+    <article class="panel mb-24">
+      <div class="panel-header text-center flex-col items-center">
+        <span class="eyebrow">Illustrative Outcome</span>
+        <h2 class="text-center mt-4 tracking-tight">A steady household could be debt-free by {{ sample_plan.summary.projected_payoff_date_label }}</h2>
+        <p class="text-center mt-3 max-w-2xl mx-auto">Example household numbers below show how one organized plan cuts through the noise.</p>
+      </div>
+      <div class="grid md:grid-cols-4 gap-6 text-center">
         <div class="summary-card">
           <span>Total debt</span>
           <strong>{{ sample_plan.summary.total_debt|currency }}</strong>
@@ -98,138 +82,44 @@
           <strong>{{ sample_plan.summary.total_interest|currency }}</strong>
         </div>
         <div class="summary-card">
-          <span>Total monthly payment</span>
+          <span>Monthly payment</span>
           <strong>{{ sample_plan.summary.monthly_payment|currency }}</strong>
         </div>
         <div class="summary-card">
           <span>Fastest first win</span>
-          <strong>{{ sample_plan.summary.fastest_win_months }} months</strong>
+          <strong>{{ sample_plan.summary.fastest_win_months }} mo</strong>
         </div>
       </div>
     </article>
 
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <span class="eyebrow">Outcome comparison</span>
-          <h2>Choose the style you can stick with</h2>
-          <p>Every strategy uses the same debts. The difference is the order and how quickly momentum builds.</p>
-        </div>
-      </div>
-      {% include "partials/comparison_cards.html" with comparisons=sample_comparisons %}
-    </article>
-  </section>
-
-  <section class="feature-grid">
-    <article class="feature-card">
-      <span class="eyebrow">Illustrative story</span>
-      <h3>The Martins stopped guessing</h3>
-      <p class="muted">Example only: one couple used the roadmap to stop spreading extra money across five balances and cut nearly $4,800 in projected interest.</p>
-    </article>
-    <article class="feature-card">
-      <span class="eyebrow">Illustrative story</span>
-      <h3>A retired pair got a paper plan</h3>
-      <p class="muted">Example only: after years of avoiding finance apps, they finally printed one month-by-month plan they could read at the kitchen table.</p>
-    </article>
-    <article class="feature-card">
-      <span class="eyebrow">Illustrative review</span>
-      <h3>"No drama. Just the next step."</h3>
-      <p class="muted">Example testimonial style: built to show the tone of the product, not to represent a verified customer endorsement.</p>
-    </article>
-  </section>
-
-  <section class="page-grid">
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <span class="eyebrow">Free vs Pro</span>
-          <h2>Start free. Upgrade only if it proves itself.</h2>
-        </div>
-      </div>
-      <div class="plan-grid xl:!grid-cols-2">
-        <article class="pricing-card">
-          <span class="eyebrow">Free</span>
-          <h3 class="mt-4 text-2xl font-bold">Built for clarity</h3>
-          <ul class="pricing-list">
-            <li>Account-based planner and built-in strategy comparison</li>
-            <li>First 18 months of the payoff schedule</li>
-            <li>Print view for paper review</li>
-          </ul>
-        </article>
-        <article class="pricing-card">
-          <span class="eyebrow">Pro</span>
-          <h3 class="mt-4 text-2xl font-bold">Start free - no charge for {{ stripe_trial_period_days }} days</h3>
-          <ul class="pricing-list">
-            <li>Saved plans and full schedule access</li>
-            <li>Unlimited custom scenarios</li>
-            <li>PDF export and Stripe billing portal</li>
-          </ul>
-        </article>
-      </div>
-      <div class="button-row mt-5">
-        <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start free</a>
-        <a class="button button-secondary" href="{% url 'billing:pricing' %}">See pricing details</a>
-      </div>
-    </article>
-
-    <article class="panel">
-      <div class="panel-header">
-        <div>
-          <span class="eyebrow">Built for reassurance</span>
-          <h2>Especially easy for older users</h2>
-        </div>
-      </div>
-      <ul class="list-check">
-        <li>Big buttons and strong contrast on desktop and mobile</li>
-        <li>Simple words instead of financial jargon</li>
-        <li>One clear primary action on every screen</li>
-        <li>Paper-friendly print output for households that trust a hard copy</li>
-      </ul>
-      <div class="cta-box mt-5">
-        <strong>You keep control.</strong>
-        <div class="muted">No bank login. No imported noise. Just your numbers, your plan, and the discipline to follow it.</div>
-      </div>
-    </article>
-  </section>
-
-  <section class="panel" x-data="{ open: 1 }">
-    <div class="panel-header">
-      <div>
-        <span class="eyebrow">Questions</span>
-        <h2>Common concerns before you begin</h2>
-      </div>
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="eyebrow">Pricing</span>
+      <h2 class="text-4xl font-black text-brand-navy mt-4 uppercase tracking-tight">Start free. Upgrade when it proves itself.</h2>
     </div>
-
-    <div class="accordion-item">
-      <button class="accordion-toggle" type="button" @click="open = open === 1 ? 0 : 1">
-        <span>Do I need to connect my bank account?</span>
-        <span x-text="open === 1 ? '-' : '+'"></span>
-      </button>
-      <p class="muted" x-show="open === 1">No. You enter balances and minimum payments yourself. The planner does not ask for bank credentials.</p>
+    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+      <article class="pricing-card">
+        <span class="eyebrow mx-auto">Free Tier</span>
+        <h3 class="mt-6 text-3xl font-black">Built for clarity</h3>
+        <ul class="pricing-list text-left mt-6 mb-8 flex-1">
+          <li>Account-based planner</li>
+          <li>Built-in strategy comparison</li>
+          <li>First 18 months of schedule</li>
+          <li>Print view for paper review</li>
+        </ul>
+        <a class="button button-secondary w-full" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Free</a>
+      </article>
+      <article class="pricing-card border-brand-red shadow-solid-red relative transform md:-translate-y-4">
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-gold text-brand-navy font-black px-4 py-1 uppercase tracking-widest text-xs rounded-sm border-2 border-brand-navy">Most Popular</div>
+        <span class="eyebrow bg-brand-red mx-auto mt-4">Pro Tier</span>
+        <h3 class="mt-6 text-3xl font-black">No charge for {{ stripe_trial_period_days }} days</h3>
+        <ul class="pricing-list text-left mt-6 mb-8 flex-1">
+          <li>Saved plans & full schedule access</li>
+          <li>Unlimited custom scenarios</li>
+          <li>PDF export functionality</li>
+          <li>Stripe billing portal</li>
+        </ul>
+        <a class="button button-primary w-full" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Free Trial</a>
+      </article>
     </div>
-    <div class="accordion-item">
-      <button class="accordion-toggle" type="button" @click="open = open === 2 ? 0 : 2">
-        <span>Will I be charged today?</span>
-        <span x-text="open === 2 ? '-' : '+'"></span>
-      </button>
-      <p class="muted" x-show="open === 2">No. Pro starts with a {{ stripe_trial_period_days }}-day free trial. Cancel before day {{ stripe_trial_period_days }} and you will not be charged.</p>
-    </div>
-    <div class="accordion-item">
-      <button class="accordion-toggle" type="button" @click="open = open === 3 ? 0 : 3">
-        <span>What happens after I create an account?</span>
-        <span x-text="open === 3 ? '-' : '+'"></span>
-      </button>
-      <p class="muted" x-show="open === 3">You can list debts, compare strategies, and see a plain-language payoff roadmap. Pro unlocks saving, full schedule paging, and export features.</p>
-    </div>
-  </section>
-
-  <section class="hero">
-    <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Ready when you are</span>
-    <h2>Pull your numbers together and start free.</h2>
-    <p>Use it. If it helps, keep it. If not, cancel before the {{ stripe_trial_period_days }}-day trial ends.</p>
-    <div class="hero-actions mt-6">
-      <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Free</a>
-      <a class="button button-secondary" href="{% url 'account_login' %}?next={% url 'core:planner_start' %}">I already have an account</a>
-    </div>
-  </section>
+  </div>
 {% endblock %}
