@@ -8,11 +8,6 @@ else
   cd "$SCRIPT_DIR"
 fi
 
-if ! python -c "import reportlab" >/dev/null 2>&1; then
-  echo "Installing missing Python dependencies..."
-  python -m pip install -r requirements.txt
-fi
-
 python manage.py migrate --noinput
 python manage.py bootstrap_superuser
 if [[ -n "${STRIPE_SECRET_KEY:-}" && -n "${STRIPE_PRO_PRICE_ID:-}" ]]; then

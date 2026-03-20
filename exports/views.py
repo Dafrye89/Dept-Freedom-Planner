@@ -1,6 +1,7 @@
 import csv
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+import textwrap
 
 from django.conf import settings
 from django.contrib import messages
@@ -92,12 +93,122 @@ def _comparison_rows(comparisons: dict) -> list[list[str]]:
     return rows
 
 
+def _build_pdf_lines(context: dict) -> list[str]:
+    plan = context["plan"]
+    saved_plan = context.get("saved_plan")
+    draft = context.get("draft") or {}
+    comparisons = context.get("comparisons") or {}
+    title = saved_plan.title if saved_plan else draft.get("title", "Debt Freedom Roadmap")
+    household = saved_plan.household_name if saved_plan else draft.get("household_name", "Debt payoff plan")
+    lines = [
+        "Debt Freedom Planner",
+        title,
+        household,
+        "",
+        "SUMMARY",
+    ]
+    for label, value in _summary_rows(plan):
+        lines.append(f"{label}: {value}")
+
+    lines.extend(["", "DEBTS"])
+    for row in _debt_rows_from_context(context):
+        lines.append(f"{row[0]} | {row[2]} | {row[3]} at {row[4]} | minimum {row[5]}")
+        if row[1] != "-":
+            lines.append(f"Lender: {row[1]}")
+
+    if comparisons:
+        lines.extend(["", "STRATEGY COMPARISON"])
+        for row in _comparison_rows(comparisons):
+            lines.append(f"{row[0]} | payoff {row[1]} | {row[2]} months | interest {row[3]} | extra {row[4]}")
+
+    lines.extend(
+        [
+            "",
+            "MONTHLY PAYOFF SCHEDULE",
+            "Month       Debt                 Starting      Interest      Payment        Ending       Status",
+        ]
+    )
+    for row in plan["schedule"]:
+        lines.append(
+            f"{row['month_label'][:11]:<11} {row['debt_name'][:20]:<20} "
+            f"{_currency(row['starting_balance']):>11} {_currency(row['interest']):>12} "
+            f"{_currency(row['payment']):>12} {_currency(row['ending_balance']):>12} {row['status']}"
+        )
+    lines.extend(
+        [
+            "",
+            "Debt Freedom Planner is an educational payoff-planning tool and not legal, tax, or financial advice.",
+        ]
+    )
+    return lines
+
+
+def _build_simple_pdf_bytes(lines: list[str]) -> bytes:
+    max_lines_per_page = 56
+    wrapped_lines: list[str] = []
+    for line in lines:
+        wrapped = textwrap.wrap(line, width=96, replace_whitespace=False, drop_whitespace=False) or [""]
+        wrapped_lines.extend(wrapped)
+    pages = [wrapped_lines[index : index + max_lines_per_page] for index in range(0, len(wrapped_lines), max_lines_per_page)] or [[]]
+
+    def escape_pdf_text(value: str) -> str:
+        return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+    objects: list[bytes | None] = [None, None, None, b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>"]
+    page_refs = []
+    for page_lines in pages:
+        stream_lines = ["BT", "/F1 10 Tf", "50 748 Td", "13 TL"]
+        for index, line in enumerate(page_lines):
+            operator = "Tj" if index == 0 else "T*"
+            if index == 0:
+                stream_lines.append(f"({escape_pdf_text(line)}) {operator}")
+            else:
+                stream_lines.append(f"{operator} ({escape_pdf_text(line)}) Tj")
+        stream_lines.append("ET")
+        stream = "\n".join(stream_lines).encode("latin-1", errors="replace")
+        content_id = len(objects)
+        objects.append(f"<< /Length {len(stream)} >>\nstream\n".encode("latin-1") + stream + b"\nendstream")
+        page_id = len(objects)
+        objects.append(
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents {content_id} 0 R >>".encode(
+                "latin-1"
+            )
+        )
+        page_refs.append(f"{page_id} 0 R")
+
+    objects[1] = b"<< /Type /Catalog /Pages 2 0 R >>"
+    objects[2] = f"<< /Type /Pages /Kids [{' '.join(page_refs)}] /Count {len(page_refs)} >>".encode("latin-1")
+
+    pdf = BytesIO()
+    pdf.write(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    offsets = [0]
+    for object_id in range(1, len(objects)):
+        offsets.append(pdf.tell())
+        pdf.write(f"{object_id} 0 obj\n".encode("latin-1"))
+        pdf.write(objects[object_id] or b"")
+        pdf.write(b"\nendobj\n")
+    xref_offset = pdf.tell()
+    pdf.write(f"xref\n0 {len(objects)}\n".encode("latin-1"))
+    pdf.write(b"0000000000 65535 f \n")
+    for offset in offsets[1:]:
+        pdf.write(f"{offset:010d} 00000 n \n".encode("latin-1"))
+    pdf.write(
+        f"trailer\n<< /Size {len(objects)} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF".encode("latin-1")
+    )
+    return pdf.getvalue()
+
+
 def _build_pdf_response(context, filename):
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-    from reportlab.lib.units import inch
-    from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    except ImportError:
+        response = HttpResponse(_build_simple_pdf_bytes(_build_pdf_lines(context)), content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
     def build_table(data, column_widths, header_background=colors.HexColor("#132d72")):
         table = Table(data, colWidths=column_widths, repeatRows=1)
