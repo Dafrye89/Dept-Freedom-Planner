@@ -54,7 +54,7 @@
     @apply flex items-center gap-3 text-white hover:text-white transition-opacity hover:opacity-90;
   }
   .brand-lockup img {
-    @apply h-12 w-auto grayscale contrast-125 brightness-150;
+    @apply h-12 w-auto;
   }
   .brand-lockup__text {
     @apply leading-none;
@@ -124,6 +124,14 @@
   }
   .page-header__actions {
     @apply flex flex-wrap gap-4 mt-6;
+  }
+  .page-header__actions .button-secondary,
+  .page-header__actions .button-ghost {
+    @apply border-white text-white bg-transparent;
+  }
+  .page-header__actions .button-secondary:hover,
+  .page-header__actions .button-ghost:hover {
+    @apply bg-white text-brand-navy;
   }
   .hero {
     @apply relative bg-brand-navy text-white overflow-hidden;

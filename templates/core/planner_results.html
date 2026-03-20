@@ -21,9 +21,6 @@
         <div class="page-header__actions">
           <a class="button button-secondary" href="{% url 'core:planner_debts' %}">Edit debts</a>
           <a class="button button-secondary" href="{% url 'core:planner_strategy' %}">Adjust strategy</a>
-          {% if capabilities.can_print %}
-            <a class="button button-ghost" href="{% url 'exports:draft_print' %}">Open print view</a>
-          {% endif %}
           {% if capabilities.can_export_pdf %}
             <a class="button button-secondary" href="{% url 'exports:draft_pdf' %}">Export PDF</a>
           {% else %}
