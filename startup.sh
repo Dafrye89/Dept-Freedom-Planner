@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ -f "/home/site/wwwroot/manage.py" ]]; then
+  cd /home/site/wwwroot
+else
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  cd "$SCRIPT_DIR"
+fi
+
 python manage.py migrate --noinput
 python manage.py bootstrap_superuser
 if [[ -n "${STRIPE_SECRET_KEY:-}" && -n "${STRIPE_PRO_PRICE_ID:-}" ]]; then
