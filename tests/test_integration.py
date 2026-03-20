@@ -14,7 +14,7 @@ from billing.models import StripeWebhookEvent
 from billing.services import create_checkout_session
 from core.services.draft import DRAFT_SESSION_KEY
 from plans.models import DebtPlan, MonthlyCheckIn, ScenarioComparison
-from plans.services import build_plan_view_data, create_saved_plan_from_draft
+from plans.services import build_plan_view_data, create_saved_plan_from_draft, sync_plan_badges, update_plan_summary
 
 
 def sample_draft(title="Debt Freedom Roadmap"):
@@ -210,12 +210,46 @@ class IntegrationTests(TestCase):
 
         self.assertRedirects(response, reverse("accounts:settings"), fetch_redirect_response=False)
 
+    def test_free_user_sees_export_modal_copy_on_saved_plan(self):
+        user = self.create_user("freeexport", "freeexport@example.com")
+        plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("plans:detail", args=[plan.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Export PDF")
+        self.assertContains(response, "Export CSV")
+        self.assertContains(response, "Start Pro free for 30 days")
+
+    def test_free_user_sees_export_modal_copy_on_draft_results(self):
+        user = self.create_user("freedraftx", "freedraftx@example.com")
+        self.client.force_login(user)
+        self.set_draft(sample_draft())
+
+        response = self.client.get(reverse("core:planner_results"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Export PDF")
+        self.assertContains(response, "Export CSV")
+        self.assertContains(response, "Start Pro free for 30 days")
+
     def test_paid_user_can_export_pdf(self):
         user = self.create_user("paidpdf", "paidpdf@example.com", paid=True)
         plan = create_saved_plan_from_draft(user=user, draft=sample_draft())
         self.client.force_login(user)
 
         response = self.client.get(reverse("exports:plan_pdf", args=[plan.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_paid_user_can_export_draft_pdf(self):
+        user = self.create_user("paiddraftpdf", "paiddraftpdf@example.com", paid=True)
+        self.client.force_login(user)
+        self.set_draft(sample_draft())
+
+        response = self.client.get(reverse("exports:draft_pdf"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
@@ -356,6 +390,36 @@ class IntegrationTests(TestCase):
         self.assertTrue(bool(user.profile.avatar))
         dashboard_response = self.client.get(reverse("plans:dashboard"))
         self.assertContains(dashboard_response, "/media/avatars/")
+
+    def test_badges_use_debt_type_copy_instead_of_raw_debt_name(self):
+        user = self.create_user("badgetext", "badgetext@example.com", paid=True)
+        draft = sample_draft("Badge Text Plan")
+        draft["extra_monthly_payment"] = "0.00"
+        draft["debts"] = [
+            {
+                "name": "Tiny Badge Card",
+                "lender_name": "Test Bank",
+                "debt_type": "credit_card",
+                "balance": "10.00",
+                "apr": "0.00",
+                "minimum_payment": "10.00",
+                "due_day": 5,
+                "notes": "",
+                "custom_order": 1,
+            }
+        ]
+        plan = create_saved_plan_from_draft(user=user, draft=draft)
+        plan.checkins_active = True
+        plan.checkin_anchor_date = date.today().replace(day=1)
+        plan.save(update_fields=["checkins_active", "checkin_anchor_date", "updated_at"])
+        self.client.force_login(user)
+
+        self.client.post(reverse("plans:submit_checkin", args=[plan.pk]), {"status": "expected", "extra_monthly_payment": ""})
+        sync_plan_badges(plan, update_plan_summary(plan))
+        response = self.client.get(reverse("accounts:settings"))
+
+        self.assertContains(response, "Paid off a credit card")
+        self.assertNotContains(response, "Tiny Badge Card")
 
     @patch("billing.views.create_checkout_session", return_value="https://checkout.stripe.com/pay/cs_test_123")
     def test_logged_in_free_user_can_start_stripe_checkout(self, mocked_checkout):

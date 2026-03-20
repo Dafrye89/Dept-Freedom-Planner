@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from accounts.services.access import get_capabilities, plan_limit_message, upgrade_message
+from billing.services import is_stripe_configured
 from core.services.draft import calculate_from_draft, clear_draft, default_draft, get_draft, save_draft
 from core.services.events import log_event
 from core.services.schedule import get_requested_schedule_page, paginate_schedule
@@ -279,6 +280,7 @@ def planner_results(request):
             "plan_limit_message": plan_limit_message(request.user),
             "stripe_pro_monthly_price": settings.STRIPE_PRO_MONTHLY_PRICE,
             "stripe_trial_period_days": settings.STRIPE_TRIAL_PERIOD_DAYS,
+            "stripe_enabled": is_stripe_configured(),
         },
     )
 

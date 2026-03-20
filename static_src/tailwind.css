@@ -312,7 +312,7 @@
     @apply flex items-start gap-4 font-bold text-slate-700 text-lg mb-4;
   }
   .list-check li::before, .pricing-list li::before {
-    content: "★";
+    content: "\2605";
     @apply text-brand-red text-xl;
   }
   .pricing-card {
@@ -326,6 +326,12 @@
   }
   .nav-link {
     @apply block text-white font-bold uppercase tracking-wider p-3 hover:bg-brand-red transition-colors rounded-sm text-center;
+  }
+  .modal-backdrop {
+    @apply fixed inset-0 z-50 bg-brand-navy/75 p-4 flex items-center justify-center;
+  }
+  .modal-panel {
+    @apply w-full max-w-2xl bg-white border-2 border-brand-navy p-6 md:p-8 shadow-solid rounded-sm;
   }
   .table-wrap {
     @apply overflow-x-auto;

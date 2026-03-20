@@ -168,7 +168,7 @@
             <article class="summary-card">
               <img src="{% static badge.badge_image %}" alt="{{ badge.badge_name }}" class="mx-auto h-20 w-20 border-2 border-slate-200 bg-slate-50 p-2">
               <span>{{ badge.badge_name }}</span>
-              <strong>{{ badge.debt_item.name }}</strong>
+              <strong>Paid off a {{ badge.debt_item.get_debt_type_display|lower }}</strong>
             </article>
           {% endfor %}
         </div>
