@@ -7,11 +7,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from accounts.services.access import get_capabilities, upgrade_message
 from calculator.services.payoff_engine import create_comparisons, solve_payoff_plan
@@ -37,33 +32,6 @@ def _format_payoff_date(value) -> str:
     if value is None:
         return "Needs larger payment"
     return value.strftime("%B %Y")
-
-
-def _build_table(data, column_widths, header_background=colors.HexColor("#132d72")):
-    table = Table(data, colWidths=column_widths, repeatRows=1)
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), header_background),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 9),
-                ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-                ("TOPPADDING", (0, 0), (-1, 0), 8),
-                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 1), (-1, -1), 8),
-                ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#122340")),
-                ("GRID", (0, 0), (-1, -1), 0.75, colors.HexColor("#d8e1f2")),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                ("TOPPADDING", (0, 1), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-            ]
-        )
-    )
-    return table
 
 
 def _summary_rows(plan: dict) -> list[list[str]]:
@@ -125,6 +93,38 @@ def _comparison_rows(comparisons: dict) -> list[list[str]]:
 
 
 def _build_pdf_response(context, filename):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    def build_table(data, column_widths, header_background=colors.HexColor("#132d72")):
+        table = Table(data, colWidths=column_widths, repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), header_background),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 9),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("TOPPADDING", (0, 0), (-1, 0), 8),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 1), (-1, -1), 8),
+                    ("TEXTCOLOR", (0, 1), (-1, -1), colors.HexColor("#122340")),
+                    ("GRID", (0, 0), (-1, -1), 0.75, colors.HexColor("#d8e1f2")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 1), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+                ]
+            )
+        )
+        return table
+
     capabilities = context.get("capabilities")
     logo_name = "logo-pro.png" if getattr(capabilities, "is_paid", False) else "logo-light.png"
     logo_path = settings.BASE_DIR / "static" / "img" / "branding" / logo_name
@@ -193,7 +193,7 @@ def _build_pdf_response(context, filename):
         )
     )
 
-    summary_table = _build_table(
+    summary_table = build_table(
         [["Summary", "Value"], *_summary_rows(plan)],
         [2.3 * inch, 4.6 * inch],
     )
@@ -203,7 +203,7 @@ def _build_pdf_response(context, filename):
     story.append(Paragraph("Accounts included in this plan", section_title))
     debt_rows = _debt_rows_from_context(context)
     story.append(
-        _build_table(
+        build_table(
             [["Debt", "Lender", "Type", "Balance", "APR", "Minimum"], *debt_rows],
             [1.55 * inch, 1.35 * inch, 1.15 * inch, 1.0 * inch, 0.7 * inch, 1.0 * inch],
         )
@@ -213,7 +213,7 @@ def _build_pdf_response(context, filename):
     if comparisons:
         story.append(Paragraph("Strategy comparison", section_title))
         story.append(
-            _build_table(
+            build_table(
                 [["Strategy", "Payoff date", "Months", "Interest", "Extra payment"], *_comparison_rows(comparisons)],
                 [1.8 * inch, 1.3 * inch, 0.8 * inch, 1.1 * inch, 1.2 * inch],
             )
@@ -228,7 +228,7 @@ def _build_pdf_response(context, filename):
     for index in range(0, len(schedule_rows), chunk_size):
         chunk = schedule_rows[index : index + chunk_size]
         story.append(
-            _build_table(
+            build_table(
                 [
                     header,
                     *[
