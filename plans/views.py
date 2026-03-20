@@ -66,7 +66,7 @@ def save_draft_plan(request):
         return redirect("core:planner_debts")
     capabilities = get_capabilities(request.user)
     if not capabilities.can_save_plans:
-        messages.warning(request, upgrade_message("save plans"))
+        messages.warning(request, upgrade_message("save roadmaps"))
         return redirect("accounts:settings")
 
     plan = create_saved_plan_from_draft(user=request.user, draft=draft)
@@ -76,7 +76,7 @@ def save_draft_plan(request):
         session_key=request.session.session_key or "",
         metadata={"plan_id": plan.pk},
     )
-    messages.success(request, "Your plan was saved.")
+    messages.success(request, "Your roadmap was saved.")
     return redirect("plans:detail", pk=plan.pk)
 
 
@@ -151,7 +151,7 @@ def plan_edit(request, pk):
             plan.scenario_comparisons.filter(is_system_generated=False).delete()
             refresh_scenarios(plan)
             sync_plan_badges(plan, result)
-            messages.success(request, "Your saved plan was updated.")
+            messages.success(request, "Your saved roadmap was updated.")
             return redirect("plans:detail", pk=plan.pk)
 
     return render(
@@ -171,7 +171,7 @@ def plan_delete(request, pk):
     plan = get_object_or_404(DebtPlan, pk=pk, user=request.user, is_archived=False)
     plan.is_archived = True
     plan.save(update_fields=["is_archived", "updated_at"])
-    messages.success(request, "The plan was archived.")
+    messages.success(request, "The roadmap was archived.")
     return redirect("plans:dashboard")
 
 
@@ -227,7 +227,7 @@ def plan_submit_checkin(request, pk):
     )
     due_checkin = get_due_checkin(plan)
     if due_checkin is None:
-        messages.info(request, "There is no monthly check-in due for this plan right now.")
+        messages.info(request, "There is no monthly check-in due for this roadmap right now.")
         return redirect("plans:detail", pk=plan.pk)
     form = MonthlyCheckInForm(request.POST)
     if form.is_valid():
@@ -259,7 +259,7 @@ def plan_toggle_checkins(request, pk):
     plan.save(update_fields=["checkins_active", "checkin_anchor_date", "updated_at"])
     messages.success(
         request,
-        "Monthly check-ins are active for this plan." if plan.checkins_active else "Monthly check-ins are paused for this plan.",
+        "Monthly check-ins are active for this roadmap." if plan.checkins_active else "Monthly check-ins are paused for this roadmap.",
     )
     next_url = request.POST.get("next")
     if next_url:

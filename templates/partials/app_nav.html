@@ -13,7 +13,7 @@
     <nav class="app-links" aria-label="Application">
       {% if user.is_authenticated %}
         <a class="app-link {% if request.resolver_match.namespace == 'plans' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'plans:dashboard' %}">Dashboard</a>
-        <a class="app-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}">Start plan</a>
+        <a class="app-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}">Start roadmap</a>
         <a class="app-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}" href="{% url 'accounts:settings' %}">Settings</a>
         {% if show_pricing_link %}
           <a class="app-link {% if request.resolver_match.namespace == 'billing' %}active{% endif %}" href="{% url 'billing:pricing' %}">Pricing</a>
@@ -24,7 +24,7 @@
         <a class="app-link" href="{% url 'account_logout' %}">Log out</a>
       {% else %}
         <a class="app-link" href="{% url 'core:home' %}">Home</a>
-        <a class="app-link active" href="{% url 'core:planner_start' %}">Start plan</a>
+        <a class="app-link active" href="{% url 'core:planner_start' %}">Start roadmap</a>
         <a class="app-link" href="{% url 'billing:pricing' %}">Pricing</a>
         <a class="app-link" href="{% url 'account_login' %}">Log in</a>
       {% endif %}
@@ -38,7 +38,7 @@
       </button>
 
       {% if user.is_authenticated %}
-        <a class="button-primary hidden sm:inline-flex" href="{% url 'core:planner_start' %}">Start a plan</a>
+        <a class="button-primary hidden sm:inline-flex" href="{% url 'core:planner_start' %}">Start a roadmap</a>
         <a class="avatar-chip hidden sm:inline-flex overflow-hidden" href="{% url 'accounts:settings' %}">
           {% if header_avatar_url %}
             <img src="{{ header_avatar_url }}" alt="{{ user.username }} profile photo" class="h-full w-full object-cover">
@@ -57,7 +57,7 @@
       <nav class="grid gap-2" aria-label="Mobile application">
         {% if user.is_authenticated %}
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'plans:dashboard' %}" @click="mobileNavOpen = false">Dashboard</a>
-          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start plan</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start roadmap</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'accounts:settings' %}" @click="mobileNavOpen = false">Settings</a>
           {% if show_pricing_link %}
             <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
@@ -68,7 +68,7 @@
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_logout' %}" @click="mobileNavOpen = false">Log out</a>
         {% else %}
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:home' %}" @click="mobileNavOpen = false">Home</a>
-          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start plan</a>
+          <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">Start roadmap</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'billing:pricing' %}" @click="mobileNavOpen = false">Pricing</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_login' %}" @click="mobileNavOpen = false">Log in</a>
           <a class="nav-link !border-white/10 !bg-white/10 !text-white" href="{% url 'account_signup' %}" @click="mobileNavOpen = false">Create free account</a>

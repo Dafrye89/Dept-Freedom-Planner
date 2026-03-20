@@ -69,7 +69,7 @@ def _posted_extra_payment(request, prefix: str = "strategy") -> str:
 def _require_planner_account(request):
     if request.user.is_authenticated:
         return None
-    messages.info(request, "Create an account to build and view your debt payoff plan.")
+    messages.info(request, "Create an account to build and view your debt payoff roadmap.")
     return redirect(f"{redirect('account_signup').url}?{urlencode({'next': request.get_full_path()})}")
 
 

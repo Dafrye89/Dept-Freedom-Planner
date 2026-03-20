@@ -25,7 +25,7 @@
         <div class="print-header__copy">
           <span class="eyebrow">Debt Freedom Planner</span>
           <h1>{{ saved_plan.title|default:plan.title }}</h1>
-          <p>{{ saved_plan.household_name|default:"Debt payoff plan" }}</p>
+          <p>{{ saved_plan.household_name|default:"Debt payoff roadmap" }}</p>
         </div>
       </div>
     </section>
@@ -41,7 +41,7 @@
       <div class="panel-header">
         <div>
           <span class="eyebrow">Debt list</span>
-          <h2>Accounts included in this plan</h2>
+          <h2>Accounts included in this roadmap</h2>
         </div>
       </div>
       {% include "partials/debt_table.html" %}

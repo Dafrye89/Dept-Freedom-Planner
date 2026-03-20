@@ -14,7 +14,7 @@
           No one is coming to fix the numbers for you. Debt Freedom Planner helps you build a solid, step-by-step roadmap to eliminate your balances and earn your way back to breathing room.
         </p>
         <div class="flex flex-wrap gap-4">
-          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Your Plan</a>
+          <a class="button button-primary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Start Your Roadmap</a>
           <a class="button button-ghost" href="{% url 'billing:pricing' %}">See Pricing</a>
         </div>
         <div class="mt-6 text-sm text-slate-400 font-bold uppercase tracking-wider">
@@ -32,7 +32,7 @@
     <div class="grid md:grid-cols-3 gap-8 text-center">
       <article class="p-6">
         <strong class="text-xl font-black text-brand-navy uppercase tracking-tight block mb-3">Account First</strong>
-        <p class="text-slate-700 font-medium">Sign in before you start so your payoff plan, billing, and progress stay tied securely to one household.</p>
+        <p class="text-slate-700 font-medium">Sign in before you start so your payoff roadmap, billing, and progress stay tied securely to one household.</p>
       </article>
       <article class="p-6">
         <strong class="text-xl font-black text-brand-navy uppercase tracking-tight block mb-3">No Fluff. Just Results.</strong>
@@ -62,7 +62,7 @@
           <li class="flex items-center gap-4 font-black text-brand-navy uppercase tracking-wide text-lg"><span class="text-brand-red text-2xl" aria-hidden="true">&#9733;</span> Compare payoff styles without spreadsheets</li>
           <li class="flex items-center gap-4 font-black text-brand-navy uppercase tracking-wide text-lg"><span class="text-brand-red text-2xl" aria-hidden="true">&#9733;</span> See your next step in plain English</li>
         </ul>
-        <a class="button button-secondary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Create Your Account</a>
+        <a class="button button-secondary" href="{% url 'account_signup' %}?next={% url 'core:planner_start' %}">Create your roadmap account</a>
       </div>
     </div>
 
@@ -70,7 +70,7 @@
       <div class="panel-header text-center flex-col items-center">
         <span class="eyebrow">Illustrative Outcome</span>
         <h2 class="text-center mt-4 tracking-tight">A steady household could be debt-free by {{ sample_plan.summary.projected_payoff_date_label }}</h2>
-        <p class="text-center mt-3 max-w-2xl mx-auto">Example household numbers below show how one organized plan cuts through the noise.</p>
+        <p class="text-center mt-3 max-w-2xl mx-auto">Example household numbers below show how one organized roadmap cuts through the noise.</p>
       </div>
       <div class="grid md:grid-cols-4 gap-6 text-center">
         <div class="summary-card">
@@ -113,7 +113,7 @@
         <span class="eyebrow bg-brand-red mx-auto mt-4">Pro Tier</span>
         <h3 class="mt-6 text-3xl font-black">No charge for {{ stripe_trial_period_days }} days</h3>
         <ul class="pricing-list text-left mt-6 mb-8 flex-1">
-          <li>Saved plans & full schedule access</li>
+          <li>Saved roadmaps & full schedule access</li>
           <li>Unlimited custom scenarios</li>
           <li>PDF export functionality</li>
           <li>Stripe billing portal</li>

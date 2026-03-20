@@ -5,7 +5,7 @@
 {% block content %}
   <section class="page-header">
     <div class="page-header__band">
-      <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Edit saved plan</span>
+      <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Edit saved roadmap</span>
       <h1 class="page-header__title">Update {{ saved_plan.title }}</h1>
       <p class="page-header__copy">Change balances, minimum payments, due dates, or strategy settings, then save to refresh the payoff date.</p>
     </div>
@@ -32,7 +32,7 @@
       {% csrf_token %}
       <div class="field-grid">
         <div class="field">
-          <label for="{{ form.title.id_for_label }}">Plan title</label>
+          <label for="{{ form.title.id_for_label }}">Roadmap title</label>
           {{ form.title }}
         </div>
         <div class="field">
@@ -66,7 +66,7 @@
           {% include "partials/debt_form_row.html" with form=formset.empty_form %}
         </template>
         <div class="button-row" style="margin-top:16px;">
-          <a class="button button-secondary" href="{% url 'plans:detail' saved_plan.pk %}">Back to saved plan</a>
+          <a class="button button-secondary" href="{% url 'plans:detail' saved_plan.pk %}">Back to saved roadmap</a>
           <button type="button" class="button button-secondary" data-add-form>Add another debt</button>
           <button type="submit" class="button button-primary">Save updates</button>
         </div>

@@ -114,10 +114,10 @@ def can_create_plan(user) -> bool:
 def plan_limit_message(user) -> str:
     capabilities = get_capabilities(user)
     if not capabilities.is_authenticated:
-        return "Create an account to build and view your debt payoff plan."
+        return "Create an account to build and view your debt payoff roadmap."
     if not capabilities.can_save_plans:
-        return "If you want to save plans, you will need to upgrade to the Pro plan."
-    return "Your account includes unlimited saved plans."
+        return "If you want to save roadmaps, you will need to upgrade to the Pro plan."
+    return "Your account includes unlimited saved roadmaps."
 
 
 def upgrade_message(feature_name: str) -> str:

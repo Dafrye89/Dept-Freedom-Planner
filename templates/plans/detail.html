@@ -9,11 +9,11 @@
 
     <section class="page-header">
       <div class="page-header__band">
-        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Saved plan</span>
+        <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Saved roadmap</span>
         <h1 class="page-header__title">{{ saved_plan.title }}</h1>
-        <p class="page-header__copy">{{ saved_plan.household_name|default:"Your household payoff plan" }} could be debt-free by {{ plan.summary.projected_payoff_date_label }} with the current {{ plan.strategy_label|lower }} strategy.</p>
+        <p class="page-header__copy">{{ saved_plan.household_name|default:"Your household payoff roadmap" }} could be debt-free by {{ plan.summary.projected_payoff_date_label }} with the current {{ plan.strategy_label|lower }} strategy.</p>
         <div class="page-header__actions">
-          <a class="button button-primary" href="{% url 'plans:edit' saved_plan.pk %}">Edit this plan</a>
+          <a class="button button-primary" href="{% url 'plans:edit' saved_plan.pk %}">Edit this roadmap</a>
           {% if capabilities.can_export_pdf %}
             <a class="button button-secondary" href="{% url 'exports:plan_pdf' saved_plan.pk %}">Export PDF</a>
           {% else %}
@@ -97,7 +97,7 @@
     <section class="panel">
       <div class="panel-header">
         <div>
-          <span class="eyebrow">Plan controls</span>
+          <span class="eyebrow">Roadmap controls</span>
           <h3>Update pace and reminders</h3>
         </div>
       </div>
@@ -266,7 +266,7 @@
       <div class="card-actions">
         <form class="inline-form" method="post" action="{% url 'plans:delete' saved_plan.pk %}">
           {% csrf_token %}
-          <button class="button button-danger" type="submit">Archive this plan</button>
+          <button class="button button-danger" type="submit">Archive this roadmap</button>
         </form>
       </div>
     </section>

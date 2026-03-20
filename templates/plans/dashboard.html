@@ -1,22 +1,22 @@
 {% extends "base_app.html" %}
 {% load formatting static %}
 
-{% block title %}My Saved Plans{% endblock %}
+{% block title %}My Saved Roadmaps{% endblock %}
 
 {% block content %}
   <section class="page-header">
     <div class="page-header__band">
       <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Dashboard</span>
-      <h1 class="page-header__title">Your saved debt plans</h1>
+      <h1 class="page-header__title">Your saved debt roadmaps</h1>
       <p class="page-header__copy">
         {% if capabilities.is_paid %}
-          Open a saved plan, track your real progress, and keep your monthly check-ins moving.
+          Open a saved roadmap, track your real progress, and keep your monthly check-ins moving.
         {% else %}
-          Open a saved plan, start a new one, or review the Pro features that unlock plan storage and deeper tracking.
+          Open a saved roadmap, start a new one, or review the Pro features that unlock roadmap storage and deeper tracking.
         {% endif %}
       </p>
       <div class="page-header__actions">
-        <a class="button button-primary" href="{% url 'core:planner_start' %}">Start a new plan</a>
+        <a class="button button-primary" href="{% url 'core:planner_start' %}">Start a new roadmap</a>
         {% if not capabilities.is_paid %}
           <a class="button button-secondary" href="{% url 'billing:pricing' %}">Compare free and paid</a>
         {% endif %}
@@ -25,7 +25,7 @@
     <div class="page-header__body">
       <div class="summary-grid">
         <article class="summary-card">
-          <span>Saved plans</span>
+          <span>Saved roadmaps</span>
           <strong>{{ plans|length }}</strong>
         </article>
         <article class="summary-card">
@@ -43,7 +43,7 @@
       </div>
       <article class="notice-box">
         <strong>Return to the same place fast.</strong>
-        <div class="muted mt-3">Each saved plan keeps its own debts, strategy, and comparison history so you can revisit it without starting over.</div>
+        <div class="muted mt-3">Each saved roadmap keeps its own debts, strategy, and comparison history so you can revisit it without starting over.</div>
       </article>
     </div>
   </section>
@@ -67,7 +67,7 @@
               <div class="field">
                 <label for="dashboard-checkin-{{ card.saved_plan.pk }}">Update for {{ card.due_checkin.month_label }}</label>
                 <select id="dashboard-checkin-{{ card.saved_plan.pk }}" name="status">
-                  <option value="expected">Yes, I made the plan as expected</option>
+                  <option value="expected">Yes, I followed the roadmap this month</option>
                   <option value="skipped_extra">No, skip my extra payment</option>
                   <option value="custom">No, use a different extra payment</option>
                 </select>
@@ -78,7 +78,7 @@
               </div>
               <div class="button-row">
                 <button class="button button-primary" type="submit">Save monthly check-in</button>
-                <a class="button button-secondary" href="{% url 'plans:detail' card.saved_plan.pk %}">Open plan</a>
+                <a class="button button-secondary" href="{% url 'plans:detail' card.saved_plan.pk %}">Open roadmap</a>
               </div>
             </form>
           </article>
@@ -91,7 +91,7 @@
     <section class="plan-grid{% if plans|length == 1 %} plan-grid--single{% endif %}">
       {% for card in plan_cards %}
         <article class="plan-card">
-          <span>{{ card.saved_plan.household_name|default:"Saved household plan" }}</span>
+          <span>{{ card.saved_plan.household_name|default:"Saved household roadmap" }}</span>
           <h3 class="mt-4 text-2xl font-bold">{{ card.saved_plan.title }}</h3>
           <div class="mt-3 grid gap-2 text-sm leading-6 text-patriotic-mute">
             <div>Debt-free target: {{ card.saved_plan.projected_payoff_date|date:"F Y"|default:"Needs recalculation" }}</div>
@@ -114,8 +114,8 @@
             </div>
           {% endif %}
           <div class="card-actions" style="margin-top:16px;">
-            <a class="button button-primary" href="{% url 'plans:detail' card.saved_plan.pk %}">Open</a>
-            <a class="button button-secondary" href="{% url 'plans:edit' card.saved_plan.pk %}">Edit</a>
+            <a class="button button-primary" href="{% url 'plans:detail' card.saved_plan.pk %}">Open roadmap</a>
+            <a class="button button-secondary" href="{% url 'plans:edit' card.saved_plan.pk %}">Edit roadmap</a>
             <form method="post" action="{% url 'plans:toggle_checkins' card.saved_plan.pk %}">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'plans:dashboard' %}">
@@ -129,15 +129,15 @@
     </section>
   {% else %}
     <section class="panel empty-state">
-      <h3>No saved plans yet.</h3>
+      <h3>No saved roadmaps yet.</h3>
       <p class="muted">
         {% if capabilities.can_save_plans %}
-          Start your first saved plan and reopen it anytime.
+          Start your first saved roadmap and reopen it anytime.
         {% else %}
-          Upgrade to Pro when you want to save plans, keep full payoff history, and reopen them later.
+          Upgrade to Pro when you want to save roadmaps, keep full payoff history, and reopen them later.
         {% endif %}
       </p>
-      <a class="button button-primary" href="{% url 'core:planner_start' %}">Build my first plan</a>
+      <a class="button button-primary" href="{% url 'core:planner_start' %}">Build my first roadmap</a>
     </section>
   {% endif %}
 {% endblock %}

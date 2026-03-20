@@ -162,7 +162,7 @@ class PlanPaceUpdateForm(ExtraPaymentPresetMixin, forms.Form):
 class MonthlyCheckInForm(forms.Form):
     status = forms.ChoiceField(
         choices=[
-            ("expected", "Yes, I made the plan as expected"),
+            ("expected", "Yes, I followed the roadmap this month"),
             ("skipped_extra", "No, skip my extra payment for this month"),
             ("custom", "No, use a different extra payment amount"),
         ]

@@ -30,7 +30,7 @@
     <h2 class="mt-3 text-2xl font-bold text-white">{{ capabilities.tier_label }}</h2>
     <p class="mt-3 text-sm leading-6 text-slate-100">
       {% if capabilities.is_paid %}
-        Your account includes unlimited plans, unlimited comparisons, and PDF export.
+        Your account includes unlimited roadmaps, unlimited comparisons, and PDF export.
       {% elif capabilities.is_authenticated %}
         Free access lets you compare strategies and preview the first 18 months before you upgrade.
       {% else %}
@@ -44,7 +44,7 @@
       <span>Home</span>
     </a>
     <a class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name != 'home' %}active{% endif %}" href="{% url 'core:planner_start' %}" @click="mobileNavOpen = false">
-      <span>Start my plan</span>
+      <span>Start my roadmap</span>
     </a>
     <a class="nav-link {% if request.resolver_match.namespace == 'plans' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% if user.is_authenticated %}{% url 'plans:dashboard' %}{% else %}{% url 'account_login' %}{% endif %}" @click="mobileNavOpen = false">
       <span>{% if user.is_authenticated %}My dashboard{% else %}Log in{% endif %}</span>

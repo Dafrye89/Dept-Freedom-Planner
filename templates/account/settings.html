@@ -8,7 +8,7 @@
     <div class="page-header__band">
       <span class="eyebrow !border-white/10 !bg-white/10 !text-white">Account settings</span>
       <h1 class="page-header__title">Manage your account</h1>
-      <p class="page-header__copy">Update the name and contact details attached to your saved plans.</p>
+      <p class="page-header__copy">Update the name and contact details attached to your saved roadmaps.</p>
     </div>
   </section>
 
@@ -74,7 +74,7 @@
           {% if capabilities.is_paid %}
             Your account already has full Pro access.
           {% else %}
-            Upgrade to Pro for unlimited plans, unlimited comparisons, and PDF export.
+            Upgrade to Pro for unlimited roadmaps, unlimited comparisons, and PDF export.
           {% endif %}
         </p>
       </div>
@@ -97,7 +97,7 @@
       {% else %}
         <article class="notice-box">
           <strong>$0 today, then ${{ stripe_pro_monthly_price }}/month after {{ stripe_trial_period_days }} days.</strong>
-          <div class="muted mt-3">Upgrade when you want saved plans, the full monthly schedule, unlimited comparisons, and PDF export.</div>
+          <div class="muted mt-3">Upgrade when you want saved roadmaps, the full monthly schedule, unlimited comparisons, and PDF export.</div>
         </article>
       {% endif %}
     </div>

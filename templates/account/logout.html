@@ -6,7 +6,7 @@
   <section class="panel empty-state">
     <span class="eyebrow">Log out</span>
     <h1>Do you want to log out?</h1>
-    <p class="muted">You can sign back in any time to reopen saved plans or print your roadmap.</p>
+    <p class="muted">You can sign back in any time to reopen saved roadmaps or print your roadmap.</p>
     <form method="post" action="{% url 'account_logout' %}">
       {% csrf_token %}
       <div class="button-row" style="justify-content:center;">

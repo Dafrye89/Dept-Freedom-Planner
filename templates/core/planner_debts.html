@@ -38,8 +38,8 @@
     <article class="panel">
       <div class="panel-header">
         <div>
-          <span class="eyebrow">Plan details</span>
-          <h3>Name this plan and add your debts</h3>
+          <span class="eyebrow">Roadmap details</span>
+          <h3>Name this roadmap and add your debts</h3>
           <p>Keep labels simple so you can recognize them immediately later.</p>
         </div>
       </div>
@@ -47,7 +47,7 @@
         {% csrf_token %}
         <div class="field-grid">
           <div class="field">
-            <label for="{{ details_form.title.id_for_label }}">Plan title</label>
+            <label for="{{ details_form.title.id_for_label }}">Roadmap title</label>
             {{ details_form.title }}
             {{ details_form.title.errors }}
           </div>
@@ -105,7 +105,7 @@
       <div class="stack">
         <div class="help-box">
           <strong>Use statement names you know.</strong>
-          <div class="muted">Examples: Visa card, truck loan, personal loan, medical payment plan.</div>
+          <div class="muted">Examples: Visa card, truck loan, personal loan, medical payment account.</div>
         </div>
         <div class="help-box">
           <strong>APR can be zero.</strong>
@@ -113,11 +113,11 @@
         </div>
         <div class="help-box">
           <strong>Minimum payment must be real.</strong>
-          <div class="muted">The monthly plan depends on the true minimum payment from each account.</div>
+          <div class="muted">The monthly roadmap depends on the true minimum payment from each account.</div>
         </div>
         <div class="notice-box">
           <strong>You can stop here and come back.</strong>
-          <div class="muted">Nothing is locked in until you save or print a finished plan.</div>
+          <div class="muted">Nothing is locked in until you save a finished roadmap.</div>
         </div>
       </div>
     </aside>

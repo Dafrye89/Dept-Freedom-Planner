@@ -31,7 +31,7 @@
       <div class="page-header__body">
         <div class="stack">
           <span class="badge">Current strategy: {{ plan.strategy_label }}</span>
-          <div class="muted">Minimum payments plus your extra monthly amount create the timeline below. If the plan does not feel realistic, change the strategy or edit the debt list before you save it.</div>
+          <div class="muted">Minimum payments plus your extra monthly amount create the timeline below. If the roadmap does not feel realistic, change the strategy or edit the debt list before you save it.</div>
         </div>
         <article class="help-box">
           <strong>First target: {{ plan.summary.first_target }}</strong>
@@ -80,7 +80,7 @@
         </div>
         <div class="upgrade-box">
           <strong>Put every extra dollar toward {{ plan.summary.first_target }} first.</strong>
-          <div class="muted">That keeps the plan simple and lets the next debt inherit the full payment sooner.</div>
+          <div class="muted">That keeps the roadmap simple and lets the next debt inherit the full payment sooner.</div>
         </div>
         <div class="chart-shell" style="margin-top:16px;">
           <canvas id="results-chart"></canvas>
@@ -118,15 +118,15 @@
     <section class="panel">
       <div class="panel-header">
         <div>
-          <span class="eyebrow">{% if capabilities.can_save_plans %}Save plan{% else %}Save or upgrade{% endif %}</span>
-          <h3>Keep this plan handy</h3>
-          <p>{% if capabilities.can_save_plans %}Save it for later or print it for paper review.{% else %}Save it for later, print it for paper review, or unlock more room for scenario planning.{% endif %}</p>
+          <span class="eyebrow">{% if capabilities.can_save_plans %}Save roadmap{% else %}Save or upgrade{% endif %}</span>
+          <h3>Keep this roadmap handy</h3>
+          <p>{% if capabilities.can_save_plans %}Save it for later and reopen it any time.{% else %}Save it for later or unlock more room for scenario planning.{% endif %}</p>
         </div>
       </div>
 
       {% if not user.is_authenticated %}
         <div class="cta-box">
-          <strong>Create an account to build your debt payoff plan.</strong>
+          <strong>Create an account to build your debt payoff roadmap.</strong>
         </div>
         <div class="button-row" style="margin-top:16px;">
           <a class="button button-primary" href="{% url 'account_signup' %}">Create free account</a>
@@ -142,7 +142,7 @@
 
         <form class="inline-form" method="post" action="{% url 'plans:save_draft' %}">
           {% csrf_token %}
-          <button class="button button-primary" type="submit">Save this plan</button>
+          <button class="button button-primary" type="submit">Save this roadmap</button>
         </form>
 
         <div class="button-row" style="margin-top:16px;">
